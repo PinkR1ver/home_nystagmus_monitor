@@ -1,25 +1,41 @@
-# Home Nystagmus Monitor (Init)
+# Home Nystagmus Monitor
 
-Android app scaffold for home nystagmus monitoring.
+居家眼震监测 Android 应用，用于采集、分析与记录管理，并支持向远端系统上传记录。
 
-## What is done in this init
-- Compose-based 3-tab UI (采集 / 记录 / 设置)
-- Session lifecycle placeholder (start/stop)
-- In-memory mock record generation
-- Pending-record upload placeholder
-- `AGENTS.md` for vibe coding rules and project memory
+## 当前能力
+- 基于 Compose 的三栏主界面（采集 / 记录 / 设置）
+- 患者账号登录、历史账号切换、最近登录自动恢复
+- CameraX 实时采集与固定硬件场景下的眼部区域处理
+- 录制视频记录并上传到服务端分析
+- 分账号记录管理与上传流程（服务端返回分析结果）
 
-## Project structure
-- `AGENTS.md`: rules + memory + milestones
-- `app/src/main/java/com/kk/homenystagmusmonitor/data`: model + repository
-- `app/src/main/java/com/kk/homenystagmusmonitor/ui`: view model + screens
+## 项目结构
+- `AGENTS.md`：项目规则、里程碑与长期约定
+- `app/src/main/java/com/kk/homenystagmusmonitor/data`：数据模型与数据层
+- `app/src/main/java/com/kk/homenystagmusmonitor/ui`：界面与状态管理
 
-## Run in Android Studio
-1. Open this folder as project root.
-2. Let Android Studio sync Gradle settings.
-3. Run app module on emulator/device.
+## 本地运行
+1. 使用 Android Studio 打开项目根目录
+2. 等待 Gradle 同步完成
+3. 运行 `app` 模块到真机或模拟器
 
-## Next phase
-- Integrate real eye-motion detection pipeline
-- Replace fake upload with real API client
-- Add local persistence (Room/DataStore)
+## 本地接收服务端
+仓库内已提供可运行的记录接收服务端，路径：`server/`。
+
+1. 创建并激活虚拟环境
+   - `cd server`
+   - `python3 -m venv .venv`
+   - `source .venv/bin/activate`
+2. 安装依赖
+   - `pip install -r requirements.txt`
+3. 启动服务
+   - `uvicorn main:app --host 0.0.0.0 --port 8787 --reload`
+
+常用接口：
+- `GET /health`
+- `POST /api/records`
+- `GET /api/records`
+
+Android 端服务器地址建议：
+- 模拟器：`http://10.0.2.2:8787`
+- 真机（同局域网）：`http://<电脑局域网IP>:8787`

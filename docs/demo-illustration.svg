@@ -1,0 +1,31 @@
+<svg width="720" height="760" viewBox="0 0 720 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="760" rx="24" fill="#FCFBF8"/>
+  <rect x="36" y="36" width="648" height="688" rx="28" fill="#FFFFFF" stroke="#E9E6E0"/>
+  <rect x="88" y="96" width="544" height="568" rx="30" fill="#FBFAF7" stroke="#EFEAE2"/>
+  <rect x="284" y="118" width="152" height="16" rx="8" fill="#D9D2C7"/>
+
+  <text x="128" y="192" fill="#7D7468" font-family="Instrument Sans, Arial, sans-serif" font-size="13" letter-spacing="2.5">LIVE SESSION</text>
+  <text x="128" y="250" fill="#171717" font-family="Cormorant Garamond, Georgia, serif" font-size="54" font-style="italic" font-weight="400">Capture at home</text>
+  <text x="128" y="288" fill="#5C5852" font-family="Instrument Sans, Arial, sans-serif" font-size="18">
+    <tspan x="128" dy="0">Guide the patient through a short recording,</tspan>
+    <tspan x="128" dy="28">store the session, then upload the result.</tspan>
+  </text>
+
+  <rect x="128" y="352" width="464" height="188" rx="26" fill="#F6F0F5" stroke="#ECDCE9"/>
+  <path d="M160 505C198 447 244 424 294 436C332 445 366 487 402 493C446 500 488 453 562 389" stroke="#D22F83" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M164 484C212 440 259 433 307 450C343 463 379 505 412 511C458 519 508 483 560 430" stroke="#171717" stroke-opacity="0.22" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 9"/>
+  <circle cx="546" cy="406" r="8" fill="#D22F83"/>
+  <circle cx="546" cy="406" r="20" fill="#D22F83" fill-opacity="0.14"/>
+
+  <rect x="128" y="576" width="142" height="56" fill="#D22F83"/>
+  <text x="157" y="610" fill="#FFFFFF" font-family="Instrument Sans, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="1.2">UPLOAD</text>
+
+  <rect x="294" y="576" width="122" height="56" stroke="#D22F83"/>
+  <text x="326" y="610" fill="#D22F83" font-family="Instrument Sans, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="1.2">REVIEW</text>
+
+  <rect x="506" y="186" width="86" height="86" rx="18" fill="#FFFFFF" stroke="#E8E0E6"/>
+  <text x="529" y="222" fill="#7D7468" font-family="Instrument Sans, Arial, sans-serif" font-size="11" letter-spacing="1.8">SAMPLES</text>
+  <text x="525" y="252" fill="#171717" font-family="Instrument Sans, Arial, sans-serif" font-size="24" font-weight="700">284</text>
+
+  <rect x="88" y="96" width="544" height="568" rx="30" stroke="#EFEAE2"/>
+</svg>

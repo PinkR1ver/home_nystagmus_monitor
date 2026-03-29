@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HNM Dashboard</title>
+  <link rel="stylesheet" href="/dashboard-assets/dashboard.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="hero-left">
+        <p class="kicker">Clinical Data Console</p>
+        <h1>Home Nystagmus<br/>Dashboard</h1>
+        <p class="lead">面向医生与运营的记录核查界面，支持筛选、归档与追踪分析状态。</p>
+      </div>
+      <div class="hero-right">
+        <p class="meta-label">数据库体量</p>
+        <p class="meta-value">__DB_SIZE__</p>
+        <p class="meta-hint">__DB_PATH__</p>
+      </div>
+    </header>
+
+    __MSG_HTML__
+
+    <section class="overview">
+      <div class="overview-title">
+        <span>01</span>
+        <h2>Overview</h2>
+      </div>
+      <div class="overview-grid" aria-label="关键指标">
+        <article>
+          <p>总记录</p>
+          <strong>__TOTAL_RECORDS__</strong>
+        </article>
+        <article>
+          <p>当前列表</p>
+          <strong>__LIST_COUNT__</strong>
+        </article>
+        <article>
+          <p>已上传</p>
+          <strong>__UPLOADED_COUNT__</strong>
+        </article>
+        <article>
+          <p>已分析</p>
+          <strong>__ANALYZED_COUNT__</strong>
+        </article>
+      </div>
+    </section>
+
+    <main class="layout">
+      <aside class="control">
+        <section class="block">
+          <div class="block-head">
+            <span>02</span>
+            <h3>Filters</h3>
+          </div>
+          <form method="get" action="/dashboard" class="toolbar">
+            <label class="field">
+              <span>账号 ID</span>
+              <input type="text" name="accountId" value="__SAFE_ACCOUNT__" placeholder="例如 P-001" />
+            </label>
+            <label class="field">
+              <span>返回条数</span>
+              <input type="number" name="limit" value="__LIMIT__" min="1" max="500"/>
+            </label>
+            <label class="field checkbox">
+              <input type="checkbox" name="showArchived" value="1" __SHOW_ARCHIVED_CHECKED__ />
+              <span>显示归档记录</span>
+            </label>
+            <div class="actions">
+              <button class="btn" type="submit">应用筛选</button>
+              <a class="btn-ghost" href="/dashboard">重置</a>
+            </div>
+          </form>
+        </section>
+
+        <section class="block">
+          <div class="block-head">
+            <span>03</span>
+            <h3>Accounts</h3>
+          </div>
+          <p class="sub">最近可见账号记录数（最多 8 个）。</p>
+          <div class="mini-wrap">
+            __ACCOUNT_CARDS__
+          </div>
+        </section>
+      </aside>
+
+      <section class="records">
+        <div class="records-head">
+          <div class="block-head">
+            <span>04</span>
+            <h3>Records</h3>
+          </div>
+          <p>点击 Record ID 查看完整字段与曲线数据。</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Record ID</th>
+                <th>Account</th>
+                <th>时间</th>
+                <th>上传状态</th>
+                <th>分析状态</th>
+                <th>样本点</th>
+                <th>结论摘要</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              __ROWS_HTML__
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

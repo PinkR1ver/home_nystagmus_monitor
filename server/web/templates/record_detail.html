@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Record Detail</title>
+  <link rel="stylesheet" href="/dashboard-assets/record_detail.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div>
+          <h3>记录详情：__RECORD_ID__</h3>
+          <div class="meta">临床复核视图（原始字段 + 样本点）</div>
+        </div>
+        <a href="/dashboard">← 返回列表</a>
+      </div>
+      <div class="grid">
+        <div class="subcard">
+          <div class="sub-title">基础信息</div>
+          <div class="meta">Record / Account / 时间 / 状态字段见下方 JSON</div>
+        </div>
+        <div class="subcard">
+          <div class="sub-title">曲线数据</div>
+          <div class="meta">包含 `timestampsMs` / `pitchSeries` / `yawSeries`</div>
+        </div>
+      </div>
+      <div class="json">
+        <pre>__PAYLOAD__</pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
