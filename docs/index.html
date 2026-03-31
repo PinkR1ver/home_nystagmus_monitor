@@ -68,57 +68,15 @@
         </div>
       </section>
 
-      <section class="server-guide" id="server-guide">
-        <div class="guide-head reveal">
-          <p class="eyebrow">Server setup</p>
-          <h2>Server README (Quick Start)</h2>
-          <p>Local deployment commands for running upload + analysis endpoints.</p>
-          <div class="guide-progress" aria-hidden="true"><span></span></div>
-        </div>
-        <div class="guide-grid">
-          <article class="guide-card reveal" data-guide-card>
-            <h3>1) Clone repo + enter server</h3>
-            <pre><code>git clone &lt;your-git-repo-url&gt;
-cd home_nystagmus_monitor/server
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt</code></pre>
-          </article>
-
-          <article class="guide-card reveal" data-guide-card>
-            <h3>2) Prepare model checkpoint</h3>
-            <pre><code>Default path:
-server/models/checkpoint_best.pth
-
-Or set env:
-VOG_CHECKPOINT_PATH=/abs/path/checkpoint_best.pth</code></pre>
-          </article>
-
-          <article class="guide-card wide reveal" data-guide-card>
-            <h3>3) Start server</h3>
-            <pre><code>cd server
-source .venv/bin/activate
-uvicorn main:app --host 0.0.0.0 --port 8787 --reload</code></pre>
-            <p class="tip">
-              Endpoints:
-              <code>/health</code>,
-              <code>/dashboard</code>,
-              <code>/api/videos</code>,
-              <code>/api/records</code>.
-            </p>
-          </article>
-
-          <article class="guide-card wide reveal" data-guide-card>
-            <h3>4) Android base URL</h3>
-            <ul>
-              <li>Emulator: <code>http://10.0.2.2:8787</code></li>
-              <li>Physical device: <code>http://&lt;your-lan-ip&gt;:8787</code></li>
-            </ul>
-            <p class="tip">
-              Set only the base URL in app settings. The upload endpoint suffix is appended by app logic.
-            </p>
-          </article>
-        </div>
+      <section class="server-entry reveal" id="server-guide">
+        <p class="eyebrow">Server setup</p>
+        <h2>Need backend setup?</h2>
+        <p>
+          Server deployment is less frequently needed during daily use.
+          We moved the full Quick Start into a dedicated page so this landing
+          stays focused and relaxed.
+        </p>
+        <a class="server-link" href="./server.html">Open Server Quick Start →</a>
       </section>
     </main>
     <script src="./main.js"></script>

@@ -20,42 +20,6 @@ if ("IntersectionObserver" in window) {
   revealNodes.forEach((node) => node.classList.add("is-visible"));
 }
 
-const storySteps = document.querySelectorAll("[data-step]");
-
-if ("IntersectionObserver" in window && storySteps.length > 0) {
-  const activeObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          storySteps.forEach((node) => node.classList.remove("is-active"));
-          entry.target.classList.add("is-active");
-        }
-      });
-    },
-    {
-      rootMargin: "-35% 0px -45% 0px",
-      threshold: 0.05
-    }
-  );
-
-  storySteps.forEach((node) => activeObserver.observe(node));
-}
-
-const parallaxNodes = document.querySelectorAll("[data-parallax]");
-
-const updateParallax = () => {
-  const y = window.scrollY || window.pageYOffset;
-  parallaxNodes.forEach((node) => {
-    const speed = Number(node.getAttribute("data-parallax")) || 0;
-    node.style.transform = `translate3d(0, ${y * (speed / 1000)}px, 0)`;
-  });
-};
-
-if (parallaxNodes.length > 0) {
-  updateParallax();
-  window.addEventListener("scroll", updateParallax, { passive: true });
-}
-
 const compareSlider = document.querySelector("[data-compare-slider]");
 const afterLayer = document.querySelector("[data-after-layer]");
 const divider = document.querySelector("[data-divider]");
@@ -74,8 +38,9 @@ if (compareSlider && afterLayer && divider) {
 }
 
 const serverGuide = document.querySelector("#server-guide");
+const guideCards = document.querySelectorAll("[data-guide-card]");
 
-if ("IntersectionObserver" in window && serverGuide) {
+if ("IntersectionObserver" in window && serverGuide && guideCards.length > 0) {
   const guideObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -93,4 +58,28 @@ if ("IntersectionObserver" in window && serverGuide) {
   );
 
   guideObserver.observe(serverGuide);
+}
+
+const updateGuideDepth = () => {
+  if (!serverGuide) return;
+  const rect = serverGuide.getBoundingClientRect();
+  const vh = window.innerHeight || 1;
+  const progress = 1 - Math.max(0, Math.min(1, (rect.top + rect.height - vh * 0.15) / (rect.height + vh * 0.4)));
+  serverGuide.style.setProperty("--guide-depth", progress.toFixed(3));
+
+  guideCards.forEach((card, index) => {
+    const cardRect = card.getBoundingClientRect();
+    const centerDistance = Math.abs(cardRect.top + cardRect.height / 2 - vh * 0.45);
+    const emphasis = Math.max(0, 1 - centerDistance / (vh * 0.75));
+    card.style.opacity = String(0.58 + emphasis * 0.42);
+    card.style.setProperty("--card-shift", `${(1 - emphasis) * 12}px`);
+    card.style.setProperty("--card-scale", `${0.985 + emphasis * 0.02}`);
+    card.style.zIndex = String(10 + Math.round(emphasis * 10) + index);
+  });
+};
+
+if (serverGuide && guideCards.length > 0) {
+  updateGuideDepth();
+  window.addEventListener("scroll", updateGuideDepth, { passive: true });
+  window.addEventListener("resize", updateGuideDepth);
 }

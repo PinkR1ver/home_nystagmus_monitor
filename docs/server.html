@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Server Quick Start · Home Nystagmus Monitor</title>
+    <meta
+      name="description"
+      content="Server quick start guide for Home Nystagmus Monitor."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Instrument+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./server.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero reveal">
+        <p class="eyebrow">Server setup</p>
+        <h1>Server Quick Start</h1>
+        <p>
+          A slower-paced setup page for backend deployment, uploads, and dashboard access.
+        </p>
+        <a class="back-link" href="./index.html">← Back to landing</a>
+      </header>
+
+      <section class="steps">
+        <article class="step reveal">
+          <span>01</span>
+          <h2>Clone repo and enter server directory</h2>
+          <pre><code>git clone &lt;your-git-repo-url&gt;
+cd home_nystagmus_monitor/server</code></pre>
+        </article>
+
+        <article class="step reveal">
+          <span>02</span>
+          <h2>Create environment and install dependencies</h2>
+          <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</code></pre>
+        </article>
+
+        <article class="step reveal">
+          <span>03</span>
+          <h2>Prepare model checkpoint</h2>
+          <pre><code>Default path:
+server/models/checkpoint_best.pth
+
+Or set env:
+VOG_CHECKPOINT_PATH=/abs/path/checkpoint_best.pth</code></pre>
+        </article>
+
+        <article class="step reveal">
+          <span>04</span>
+          <h2>Start server</h2>
+          <pre><code>cd server
+source .venv/bin/activate
+uvicorn main:app --host 0.0.0.0 --port 8787 --reload</code></pre>
+          <p class="tip">
+            Endpoints: <code>/health</code>, <code>/dashboard</code>,
+            <code>/api/videos</code>, <code>/api/records</code>.
+          </p>
+        </article>
+
+        <article class="step reveal">
+          <span>05</span>
+          <h2>Configure Android base URL</h2>
+          <ul>
+            <li>Emulator: <code>http://10.0.2.2:8787</code></li>
+            <li>Physical device: <code>http://&lt;your-lan-ip&gt;:8787</code></li>
+          </ul>
+          <p class="tip">
+            Set only the base URL in app settings. The upload endpoint suffix is appended by app logic.
+          </p>
+        </article>
+      </section>
+    </main>
+    <script src="./main.js"></script>
+  </body>
+</html>

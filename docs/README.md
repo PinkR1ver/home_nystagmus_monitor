@@ -19,7 +19,9 @@ This folder contains a standalone static landing page for `Home Nystagmus Monito
 
 ## Server Guide Section
 
-`index.html` includes a "服务端部署说明（README 风格）" section with:
+`index.html` now links to a dedicated server setup page (`server.html`) so the landing stays lightweight.
+
+`server.html` includes the full "Server Quick Start" with:
 
 - Repository clone + `server/` quick-start commands
 - Model path requirements

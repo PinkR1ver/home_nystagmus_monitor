@@ -248,6 +248,51 @@ h1 {
   margin: 0;
 }
 
+.server-entry {
+  margin-top: 3.2rem;
+  border-top: 1px solid var(--line);
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  max-width: 720px;
+}
+
+.server-entry h2 {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 0.98;
+}
+
+.server-entry p {
+  margin: 0.95rem 0 0;
+  color: color-mix(in oklab, var(--ink) 75%, var(--ash));
+  line-height: 1.72;
+}
+
+.server-link {
+  margin-top: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: 0.72rem 1.14rem;
+  border: 1px solid color-mix(in oklab, var(--accent) 70%, black);
+  background: color-mix(in oklab, var(--paper) 87%, white);
+  color: color-mix(in oklab, var(--ink) 76%, var(--accent));
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out), background-color 180ms var(--ease-out);
+}
+
+.server-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 9px 22px color-mix(in oklab, var(--accent) 16%, transparent);
+  background: color-mix(in oklab, var(--paper) 94%, white);
+}
+
 .server-guide {
   margin-top: 2.8rem;
   padding-top: 1.8rem;
@@ -257,6 +302,7 @@ h1 {
   gap: clamp(1rem, 3vw, 2.2rem);
   align-items: start;
   position: relative;
+  --guide-depth: 0;
 }
 
 .guide-head h2 {
@@ -309,13 +355,18 @@ h1 {
   display: grid;
   grid-template-columns: repeat(2, minmax(260px, 1fr));
   gap: 0.95rem;
+  perspective: 1200px;
 }
 
 .guide-card {
   border: 1px solid var(--line);
   padding: 1rem 1rem 0.9rem;
   background: color-mix(in oklab, var(--paper) 94%, var(--line));
-  transition: transform 260ms var(--ease-out), border-color 220ms var(--ease-out), background-color 220ms var(--ease-out);
+  transition: transform 360ms var(--ease-out), border-color 220ms var(--ease-out), background-color 220ms var(--ease-out), box-shadow 360ms var(--ease-out);
+  --card-shift: calc((1 - var(--guide-depth)) * 18px);
+  --card-scale: calc(0.985 + var(--guide-depth) * 0.015);
+  transform: translateY(var(--card-shift)) scale(var(--card-scale));
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--line) 75%, transparent);
 }
 
 .guide-card.wide {
@@ -328,9 +379,10 @@ h1 {
 }
 
 .guide-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(calc(var(--card-shift) - 2px)) scale(calc(var(--card-scale) + 0.005));
   border-color: color-mix(in oklab, var(--line-strong) 75%, var(--line));
   background: color-mix(in oklab, var(--paper) 90%, white);
+  box-shadow: 0 12px 30px color-mix(in oklab, var(--accent) 16%, transparent);
 }
 
 .guide-card pre {
