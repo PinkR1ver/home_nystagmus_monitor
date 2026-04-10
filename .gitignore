@@ -9,3 +9,5 @@
 /app/build/
 .conda
 .kotlin/
+
+/server/data
