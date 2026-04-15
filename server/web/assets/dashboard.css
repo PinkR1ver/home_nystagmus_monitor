@@ -413,6 +413,33 @@ tbody tr:hover {
   transition: transform 180ms var(--ease-out), background-color 180ms var(--ease-out);
 }
 
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--line));
+  background: color-mix(in oklab, var(--accent-soft) 55%, var(--paper));
+  color: color-mix(in oklab, var(--accent) 78%, black);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: transform 180ms var(--ease-out), background-color 180ms var(--ease-out);
+}
+
+.action-link:hover {
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
 @keyframes enter {
   to {
     transform: translateY(0);

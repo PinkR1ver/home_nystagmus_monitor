@@ -11,3 +11,9 @@
 .kotlin/
 
 /server/data
+/server/logs
+/server/run
+/server/.venv
+/server/.venv-hospital
+/server/__pycache__/
+/dist

@@ -14,7 +14,10 @@
           <h3>记录详情：__RECORD_ID__</h3>
           <div class="meta">临床复核视图（原始字段 + 样本点）</div>
         </div>
-        <a href="/dashboard">← 返回列表</a>
+        <div class="head-right">
+          __PACKAGE_ACTIONS__
+          <a href="/dashboard">← 返回列表</a>
+        </div>
       </div>
       <div class="grid">
         <div class="subcard">
@@ -24,6 +27,11 @@
         <div class="subcard">
           <div class="sub-title">曲线数据</div>
           <div class="meta">包含 `timestampsMs` / `pitchSeries` / `yawSeries`</div>
+        </div>
+        <div class="subcard">
+          <div class="sub-title">集成接口</div>
+          <div class="meta">可下载 ZIP，或调用 push API 将包推送到医院系统。</div>
+          <div class="endpoint-list">__PACKAGE_ENDPOINTS__</div>
         </div>
       </div>
       <div class="json">

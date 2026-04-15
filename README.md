@@ -13,6 +13,8 @@
 - `AGENTS.md`：项目规则、里程碑与长期约定
 - `app/src/main/java/com/kk/homenystagmusmonitor/data`：数据模型与数据层
 - `app/src/main/java/com/kk/homenystagmusmonitor/ui`：界面与状态管理
+- `server/`：FastAPI 服务端、SQLite、报告与 ZIP 打包逻辑
+- `server/deploy/`：离线医院服务器交付脚本、锁定依赖与部署文档
 
 ## 本地运行
 1. 使用 Android Studio 打开项目根目录
@@ -30,6 +32,11 @@
    - `pip install -r requirements.txt`
 3. 启动服务
    - `uvicorn main:app --host 0.0.0.0 --port 8787 --reload`
+
+如果目标是离线医院服务器交付，请不要直接复制本地 `.venv`，优先看：
+
+- `server/deploy/README.md`
+- `server/deploy/runtime-matrix.md`
 
 常用接口：
 - `GET /health`

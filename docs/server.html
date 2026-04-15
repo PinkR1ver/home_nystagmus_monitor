@@ -45,11 +45,13 @@ pip install -r requirements.txt</code></pre>
 
         <article class="step reveal">
           <span>03</span>
-          <h2>Prepare model checkpoint</h2>
+          <h2>Prepare algorithm runtime and checkpoint</h2>
           <pre><code>Default path:
+server/vendor/SwinUNet-VOG/
 server/models/checkpoint_best.pth
 
 Or set env:
+HNM_VOG_DIR=/abs/path/SwinUNet-VOG
 VOG_CHECKPOINT_PATH=/abs/path/checkpoint_best.pth</code></pre>
         </article>
 
@@ -75,6 +77,15 @@ uvicorn main:app --host 0.0.0.0 --port 8787 --reload</code></pre>
           <p class="tip">
             Set only the base URL in app settings. The upload endpoint suffix is appended by app logic.
           </p>
+        </article>
+
+        <article class="step reveal">
+          <span>06</span>
+          <h2>Offline hospital deployment</h2>
+          <pre><code>See:
+server/deploy/README.md
+server/deploy/runtime-matrix.md
+server/deploy/scripts/</code></pre>
         </article>
       </section>
     </main>

@@ -1,0 +1,17 @@
+[Unit]
+Description=Home Nystagmus Monitor Server
+After=network.target
+
+[Service]
+Type=simple
+User=hnm
+Group=hnm
+WorkingDirectory=/opt/hnm/server
+EnvironmentFile=/opt/hnm/server/deploy/aliyun-ubuntu24/env/hnm-server.aliyun.env
+ExecStart=/opt/hnm/server/deploy/scripts/run_server_foreground.sh
+Restart=on-failure
+RestartSec=5
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

@@ -573,8 +573,15 @@ class SharedPrefsMonitorRepository(
                 writeFormField(os, boundary, "accountId", accountId)
                 writeFormField(os, boundary, "recordId", record.id)
                 writeFormField(os, boundary, "accountName", record.accountName)
+                writeFormField(
+                    os,
+                    boundary,
+                    "patientId",
+                    record.accountId.ifBlank { accountId }
+                )
                 writeFormField(os, boundary, "startedAt", record.startedAt)
                 writeFormField(os, boundary, "durationSec", record.durationSec.toString())
+                writeFormField(os, boundary, "inputMode", "single_eye")
                 writeFileField(os, boundary, "video", file, "video/mp4")
                 os.write("--$boundary--\r\n".toByteArray(Charsets.UTF_8))
             }
