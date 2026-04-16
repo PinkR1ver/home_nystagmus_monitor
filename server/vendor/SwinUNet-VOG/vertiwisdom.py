@@ -26,12 +26,6 @@ plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
 try:
-    import mediapipe as mp
-    MEDIAPIPE_AVAILABLE = True
-except ImportError:
-    MEDIAPIPE_AVAILABLE = False
-
-try:
     from decord import VideoReader, cpu
     DECORD_AVAILABLE = True
 except ImportError:
@@ -152,48 +146,26 @@ class SignalProcessor:
 # ==============================================================================
 #  眼部ROI提取
 # ==============================================================================
-class MediaPipeEyeNormalizer:
-    """基于MediaPipe的眼部ROI提取"""
-
-    LEFT_EYE_OUTER = 263
-    LEFT_EYE_INNER = 362
-    LEFT_EYE_UPPER = 386
-    LEFT_EYE_BOTTOM = 374
-
-    RIGHT_EYE_OUTER = 33
-    RIGHT_EYE_INNER = 133
-    RIGHT_EYE_UPPER = 159
-    RIGHT_EYE_BOTTOM = 145
+class SingleEyeNormalizer:
+    """单眼视频 ROI 提取器。"""
 
     def __init__(
         self,
         eye: str = "left",
         target_size: Tuple[int, int] = (36, 60),
-        padding: float = 0.15,
+        padding: float = 0.0,
         enhance_gamma: float = 1.0,
         enhance_clahe_clip: float = 1.2,
     ):
         self.eye = eye.lower()
         self.target_size = target_size
-        self.padding = np.clip(padding, 0.05, 0.4)
+        self.padding = max(0.0, min(float(padding), 0.25))
         self.enhance_gamma = enhance_gamma
-        self.enhance_clahe_clip = enhance_clahe_clip
-
         self.clahe = cv2.createCLAHE(clipLimit=enhance_clahe_clip, tileGridSize=(4, 4))
-        
-        if MEDIAPIPE_AVAILABLE:
-            self.mp_face_mesh = mp.solutions.face_mesh
-            self.face_mesh = self.mp_face_mesh.FaceMesh(
-                static_image_mode=False,
-                max_num_faces=1,
-                refine_landmarks=True,
-                min_detection_confidence=0.5,
-                min_tracking_confidence=0.5,
-            )
-        else:
-            self.face_mesh = None
+        self.prev_center: Optional[Tuple[float, float]] = None
+        self.prev_bounds: Optional[Tuple[float, float]] = None
 
-        # 与 gui_visualizer 保持一致：禁用高级预处理（模型训练时未使用这些功能）
+        # 与训练时保持一致：只做基础增强与尺寸归一化。
         self.preprocessor = EyeImagePreprocessor(
             target_size=target_size,
             normalize_illumination=False,
@@ -203,43 +175,115 @@ class MediaPipeEyeNormalizer:
             adaptive_hist_eq=False,
             use_geometric_normalization=False,
         )
-        h, w = target_size
-        outer_x = w * self.padding
-        inner_x = w * (1.0 - self.padding)
-        center_y = h * 0.55
-        upper_y = h * 0.25
-        lower_y = h * 0.75
 
-        self.target_points_4pt = np.float32([
-                [outer_x, center_y],
-                [inner_x, center_y],
-                [w * 0.5, upper_y],
-                [w * 0.5, lower_y],
-        ])
+    def _estimate_geometry(self, frame_bgr: np.ndarray) -> Tuple[float, float, float, float]:
+        h, w = frame_bgr.shape[:2]
+        gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (9, 9), 0)
 
-    def _compute_ear(self, landmarks) -> float:
-        """计算眼睛纵横比 (Eye Aspect Ratio)"""
-        if self.eye == "right":
-            upper_idx = self.RIGHT_EYE_UPPER
-            lower_idx = self.RIGHT_EYE_BOTTOM
-            inner_idx = self.RIGHT_EYE_INNER
-            outer_idx = self.RIGHT_EYE_OUTER
+        search_x0 = int(w * 0.08)
+        search_x1 = max(search_x0 + 1, int(w * 0.92))
+        search_y0 = int(h * 0.10)
+        search_y1 = max(search_y0 + 1, int(h * 0.90))
+        roi = gray[search_y0:search_y1, search_x0:search_x1]
+
+        threshold = float(np.percentile(roi, 12))
+        dark_mask = (roi <= threshold).astype(np.uint8)
+        kernel = np.ones((5, 5), dtype=np.uint8)
+        dark_mask = cv2.morphologyEx(dark_mask, cv2.MORPH_OPEN, kernel)
+        dark_mask = cv2.morphologyEx(dark_mask, cv2.MORPH_CLOSE, kernel)
+
+        ys, xs = np.where(dark_mask > 0)
+        if len(xs) == 0:
+            center_x = w * 0.5
+            center_y = h * 0.38
+            radius = max(12.0, min(w, h) * 0.08)
         else:
-            upper_idx = self.LEFT_EYE_UPPER
-            lower_idx = self.LEFT_EYE_BOTTOM
-            inner_idx = self.LEFT_EYE_INNER
-            outer_idx = self.LEFT_EYE_OUTER
+            darkness = np.maximum(threshold - roi[ys, xs], 1.0).astype(np.float32)
+            center_x = search_x0 + float(np.average(xs, weights=darkness))
+            center_y = search_y0 + float(np.average(ys, weights=darkness))
+            area = max(float(len(xs)), 16.0)
+            radius = float(np.sqrt(area / np.pi))
+            radius = max(12.0, min(radius * 1.35, min(w, h) * 0.18))
 
-        p_up = landmarks[upper_idx]
-        p_lo = landmarks[lower_idx]
-        p_in = landmarks[inner_idx]
-        p_out = landmarks[outer_idx]
+        strip_half_width = max(16, int(radius * 2.5))
+        x0 = max(0, int(center_x) - strip_half_width)
+        x1 = min(w, int(center_x) + strip_half_width)
+        strip = gray[:, x0:x1]
+        profile = strip.mean(axis=1).astype(np.float32)
+        profile = cv2.GaussianBlur(profile.reshape(-1, 1), (1, 31), 0).reshape(-1)
+        grad = np.gradient(profile)
 
-        v_dist = np.sqrt((p_up.x - p_lo.x) ** 2 + (p_up.y - p_lo.y) ** 2)
-        h_dist = np.sqrt((p_in.x - p_out.x) ** 2 + (p_in.y - p_out.y) ** 2)
-        return v_dist / (h_dist + 1e-6)
+        upper_search_start = max(0, int(center_y - radius * 3.0))
+        upper_search_end = max(upper_search_start + 1, int(center_y - radius * 0.4))
+        lower_search_start = min(h - 1, int(center_y + radius * 0.4))
+        lower_search_end = min(h, int(center_y + radius * 3.2))
 
-    def _enhance_simple(self, frame_bgr: np.ndarray) -> np.ndarray:
+        if upper_search_end > upper_search_start:
+            upper_y = float(upper_search_start + int(np.argmin(grad[upper_search_start:upper_search_end])))
+        else:
+            upper_y = center_y - radius * 1.6
+
+        if lower_search_end > lower_search_start:
+            lower_y = float(lower_search_start + int(np.argmax(grad[lower_search_start:lower_search_end])))
+        else:
+            lower_y = center_y + radius * 1.6
+
+        if lower_y <= upper_y:
+            upper_y = center_y - radius * 1.6
+            lower_y = center_y + radius * 1.6
+
+        if self.prev_center is not None:
+            alpha = 0.65
+            center_x = alpha * self.prev_center[0] + (1.0 - alpha) * center_x
+            center_y = alpha * self.prev_center[1] + (1.0 - alpha) * center_y
+        if self.prev_bounds is not None:
+            alpha = 0.65
+            upper_y = alpha * self.prev_bounds[0] + (1.0 - alpha) * upper_y
+            lower_y = alpha * self.prev_bounds[1] + (1.0 - alpha) * lower_y
+
+        self.prev_center = (center_x, center_y)
+        self.prev_bounds = (upper_y, lower_y)
+        return center_x, center_y, upper_y, lower_y
+
+    def _crop_single_eye(self, frame_bgr: np.ndarray) -> Optional[np.ndarray]:
+        if frame_bgr is None or frame_bgr.size == 0:
+            return None
+
+        h, w = frame_bgr.shape[:2]
+        if h < 4 or w < 4:
+            return None
+
+        center_x, _, upper_y, lower_y = self._estimate_geometry(frame_bgr)
+        target_h, target_w = self.target_size
+        target_ratio = float(target_w) / float(target_h)
+        current_ratio = float(w) / float(h)
+
+        if current_ratio > target_ratio:
+            crop_h = h
+            crop_w = max(1, int(round(crop_h * target_ratio)))
+        else:
+            crop_w = w
+            crop_h = max(1, int(round(crop_w / target_ratio)))
+
+        if self.padding > 0:
+            crop_w = max(1, int(round(crop_w * (1.0 - self.padding))))
+            crop_h = max(1, int(round(crop_h * (1.0 - self.padding))))
+
+        eye_center_y = (upper_y + lower_y) / 2.0
+        eyelid_height = max(1.0, lower_y - upper_y)
+        desired_center_y = eye_center_y + eyelid_height * 0.03
+
+        x0 = int(round(center_x - crop_w / 2.0))
+        y0 = int(round(desired_center_y - crop_h / 2.0))
+        x0 = max(0, min(x0, w - crop_w))
+        y0 = max(0, min(y0, h - crop_h))
+        x1 = min(w, x0 + crop_w)
+        y1 = min(h, y0 + crop_h)
+        cropped = frame_bgr[y0:y1, x0:x1]
+        return cropped if cropped.size > 0 else None
+
+    def _enhance_single_eye(self, frame_bgr: np.ndarray) -> np.ndarray:
         gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
         if self.enhance_gamma != 1.0:
             inv_gamma = 1.0 / self.enhance_gamma
@@ -253,61 +297,22 @@ class MediaPipeEyeNormalizer:
         return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
 
     def extract(self, frame_bgr: np.ndarray) -> Tuple[Optional[torch.Tensor], float]:
-        """
-        提取眼部ROI
-        返回: (roi_tensor, eye_aspect_ratio)
-        """
         if frame_bgr is None or frame_bgr.size == 0:
             return None, 0.0
-        
-        if not MEDIAPIPE_AVAILABLE or self.face_mesh is None:
+
+        cropped = self._crop_single_eye(frame_bgr)
+        if cropped is None:
             return None, 0.0
 
-        frame_for_detection = self._enhance_simple(frame_bgr)
-        frame_rgb = cv2.cvtColor(frame_for_detection, cv2.COLOR_BGR2RGB)
-        results = self.face_mesh.process(frame_rgb)
-        if not results.multi_face_landmarks:
-            return None, 0.0
-
-        landmarks = results.multi_face_landmarks[0].landmark
-        ear = self._compute_ear(landmarks)
-
-        h_img, w_img, _ = frame_for_detection.shape
-        if self.eye == "right":
-            outer_idx = self.RIGHT_EYE_OUTER
-            inner_idx = self.RIGHT_EYE_INNER
-            upper_idx = self.RIGHT_EYE_UPPER
-            bottom_idx = self.RIGHT_EYE_BOTTOM
-        else:
-            outer_idx = self.LEFT_EYE_OUTER
-            inner_idx = self.LEFT_EYE_INNER
-            upper_idx = self.LEFT_EYE_UPPER
-            bottom_idx = self.LEFT_EYE_BOTTOM
-
-        def get_point(idx):
-            lm = landmarks[idx]
-            return [lm.x * w_img, lm.y * h_img]
-
-        outer_corner = np.array(get_point(outer_idx), dtype=np.float32)
-        inner_corner = np.array(get_point(inner_idx), dtype=np.float32)
-        upper_center = np.array(get_point(upper_idx), dtype=np.float32)
-        bottom_center = np.array(get_point(bottom_idx), dtype=np.float32)
-
-        source_points = np.float32([outer_corner, inner_corner, upper_center, bottom_center])
-        M = cv2.getPerspectiveTransform(source_points, self.target_points_4pt)
-        warped = cv2.warpPerspective(
-            frame_for_detection, M, (self.target_size[1], self.target_size[0]), flags=cv2.INTER_LINEAR
-        )
-
-        if self.eye == "right":
-            warped = cv2.flip(warped, 1)
-
-        roi_tensor = self.preprocessor(warped)
-        return roi_tensor, ear
+        roi_tensor = self.preprocessor(self._enhance_single_eye(cropped))
+        return roi_tensor, 1.0
 
     def close(self):
-        if self.face_mesh:
-            self.face_mesh.close()
+        return None
+
+
+# 兼容旧入口名称，避免上层调用方立刻断裂。
+MediaPipeEyeNormalizer = SingleEyeNormalizer
 
 
 # ==============================================================================
@@ -371,7 +376,7 @@ def process_video(
     if fps <= 0:
         fps = 30.0
 
-    eye_norm = MediaPipeEyeNormalizer(
+    eye_norm = SingleEyeNormalizer(
         eye="left",
         enhance_gamma=1.0,
         enhance_clahe_clip=1.2,
@@ -805,7 +810,7 @@ def extract_nystagmus_gif(video_path: str, results: Dict[str, Any], padding: flo
     end_frame = int(end_time * video_fps)
     
     # 初始化眼部提取器
-    eye_normalizer = MediaPipeEyeNormalizer(
+    eye_normalizer = SingleEyeNormalizer(
         eye="left",
         target_size=(72, 120),  # 放大尺寸以便 GIF 显示
         enhance_gamma=1.2,

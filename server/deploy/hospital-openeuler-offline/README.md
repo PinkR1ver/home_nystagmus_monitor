@@ -23,7 +23,7 @@
 原因：
 
 - `openEuler 22.03` 的 `glibc` 基线足以覆盖 `manylinux_2_28` 轮子要求
-- 当前本地验证环境已经跑通 `mediapipe==0.10.14` 与 `Python 3.12`
+- 当前本地验证环境已经跑通 `Python 3.12 + torch + OpenCV`
 - `torch==2.11.0` / `torchvision==0.26.0` 可按 `cu126` 预下载 GPU 轮子
 - 相比更新的 CUDA 通道，`cu126` 对旧一些的医院 GPU 兼容面更稳
 

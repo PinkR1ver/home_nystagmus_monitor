@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import http.client
 import json
-from contextlib import contextmanager
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 import html
@@ -87,7 +86,6 @@ ARCHIVE_DIR = DATA_DIR / "archive"
 ARCHIVE_RECORD_DIR = ARCHIVE_DIR / "records"
 VOG_PROJECT_DIR = _resolve_runtime_path("HNM_VOG_DIR", BASE_DIR / "vendor" / "SwinUNet-VOG")
 INPUT_MODE_SINGLE_EYE = "single_eye"
-INPUT_MODE_FULL_FACE = "full_face"
 DEFAULT_INPUT_MODE = INPUT_MODE_SINGLE_EYE
 
 
@@ -789,13 +787,6 @@ def _get_vog_runtime() -> tuple[dict[str, Any] | None, str | None]:
                 "或将包含 vertiwisdom.py 的目录加入 HNM_VOG_MODULE_PATHS。"
             ) from exc
         _patch_vertiwisdom_font_support(vw)
-        mp_obj = getattr(vw, "mp", None)
-        if mp_obj is None or not hasattr(mp_obj, "solutions"):
-            raise RuntimeError(
-                "当前 mediapipe 缺少 legacy solutions API。"
-                "请安装兼容版本（例如 mediapipe==0.10.14）后重启服务。"
-            )
-
         ckpt_candidates = _candidate_checkpoint_paths()
         ckpt = _first_existing(ckpt_candidates)
         if ckpt is None:
@@ -879,198 +870,8 @@ def _safe_slug(value: str, default: str = "na", max_len: int = 64) -> str:
 
 
 def _normalize_input_mode(value: str | None) -> str:
-    mode = (value or DEFAULT_INPUT_MODE).strip().lower().replace("-", "_")
-    if mode in {"full_face", "face_mesh", "fullface"}:
-        return INPUT_MODE_FULL_FACE
+    # 服务端已彻底收口为 single_eye，保留该函数仅做兼容归一化。
     return INPUT_MODE_SINGLE_EYE
-
-
-def _get_single_eye_normalizer_class(vw: Any) -> Any:
-    cached = getattr(vw, "_HNM_SINGLE_EYE_NORMALIZER", None)
-    if cached is not None:
-        return cached
-
-    import cv2  # type: ignore
-    import numpy as np  # type: ignore
-
-    class SingleEyeNormalizer:
-        def __init__(
-            self,
-            eye: str = "left",
-            target_size: tuple[int, int] = (36, 60),
-            padding: float = 0.0,
-            enhance_gamma: float = 1.0,
-            enhance_clahe_clip: float = 1.2,
-        ):
-            self.eye = eye.lower()
-            self.target_size = target_size
-            self.padding = max(0.0, min(float(padding), 0.25))
-            self.enhance_gamma = enhance_gamma
-            self.clahe = cv2.createCLAHE(clipLimit=enhance_clahe_clip, tileGridSize=(4, 4))
-            self.prev_center: tuple[float, float] | None = None
-            self.prev_bounds: tuple[float, float] | None = None
-            self.preprocessor = vw.EyeImagePreprocessor(
-                target_size=target_size,
-                normalize_illumination=False,
-                normalize_contrast=False,
-                normalize_color=False,
-                gamma_correction=False,
-                adaptive_hist_eq=False,
-                use_geometric_normalization=False,
-            )
-
-        def _estimate_geometry(self, frame_bgr: Any) -> tuple[float, float, float, float]:
-            h, w = frame_bgr.shape[:2]
-            gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
-            gray = cv2.GaussianBlur(gray, (9, 9), 0)
-
-            search_x0 = int(w * 0.08)
-            search_x1 = max(search_x0 + 1, int(w * 0.92))
-            search_y0 = int(h * 0.10)
-            search_y1 = max(search_y0 + 1, int(h * 0.90))
-            roi = gray[search_y0:search_y1, search_x0:search_x1]
-
-            threshold = float(np.percentile(roi, 12))
-            dark_mask = (roi <= threshold).astype(np.uint8)
-            kernel = np.ones((5, 5), dtype=np.uint8)
-            dark_mask = cv2.morphologyEx(dark_mask, cv2.MORPH_OPEN, kernel)
-            dark_mask = cv2.morphologyEx(dark_mask, cv2.MORPH_CLOSE, kernel)
-
-            ys, xs = np.where(dark_mask > 0)
-            if len(xs) == 0:
-                center_x = w * 0.5
-                center_y = h * 0.38
-                radius = max(12.0, min(w, h) * 0.08)
-            else:
-                darkness = np.maximum(threshold - roi[ys, xs], 1.0).astype(np.float32)
-                cx_local = float(np.average(xs, weights=darkness))
-                cy_local = float(np.average(ys, weights=darkness))
-                center_x = search_x0 + cx_local
-                center_y = search_y0 + cy_local
-                area = max(float(len(xs)), 16.0)
-                radius = float(np.sqrt(area / np.pi))
-                radius = max(12.0, min(radius * 1.35, min(w, h) * 0.18))
-
-            strip_half_width = max(16, int(radius * 2.5))
-            x0 = max(0, int(center_x) - strip_half_width)
-            x1 = min(w, int(center_x) + strip_half_width)
-            strip = gray[:, x0:x1]
-            profile = strip.mean(axis=1).astype(np.float32)
-            profile = cv2.GaussianBlur(profile.reshape(-1, 1), (1, 31), 0).reshape(-1)
-            grad = np.gradient(profile)
-
-            upper_search_start = max(0, int(center_y - radius * 3.0))
-            upper_search_end = max(upper_search_start + 1, int(center_y - radius * 0.4))
-            lower_search_start = min(h - 1, int(center_y + radius * 0.4))
-            lower_search_end = min(h, int(center_y + radius * 3.2))
-
-            if upper_search_end > upper_search_start:
-                upper_rel = int(np.argmin(grad[upper_search_start:upper_search_end]))
-                upper_y = float(upper_search_start + upper_rel)
-            else:
-                upper_y = center_y - radius * 1.6
-
-            if lower_search_end > lower_search_start:
-                lower_rel = int(np.argmax(grad[lower_search_start:lower_search_end]))
-                lower_y = float(lower_search_start + lower_rel)
-            else:
-                lower_y = center_y + radius * 1.6
-
-            if lower_y <= upper_y:
-                upper_y = center_y - radius * 1.6
-                lower_y = center_y + radius * 1.6
-
-            if self.prev_center is not None:
-                alpha = 0.65
-                center_x = alpha * self.prev_center[0] + (1.0 - alpha) * center_x
-                center_y = alpha * self.prev_center[1] + (1.0 - alpha) * center_y
-            if self.prev_bounds is not None:
-                alpha = 0.65
-                upper_y = alpha * self.prev_bounds[0] + (1.0 - alpha) * upper_y
-                lower_y = alpha * self.prev_bounds[1] + (1.0 - alpha) * lower_y
-
-            self.prev_center = (center_x, center_y)
-            self.prev_bounds = (upper_y, lower_y)
-            return center_x, center_y, upper_y, lower_y
-
-        def _crop_single_eye(self, frame_bgr: Any) -> Any:
-            if frame_bgr is None or getattr(frame_bgr, "size", 0) == 0:
-                return None
-            h, w = frame_bgr.shape[:2]
-            if h < 4 or w < 4:
-                return None
-
-            center_x, center_y, upper_y, lower_y = self._estimate_geometry(frame_bgr)
-
-            target_h, target_w = self.target_size
-            target_ratio = float(target_w) / float(target_h)
-            current_ratio = float(w) / float(h)
-
-            if current_ratio > target_ratio:
-                crop_h = h
-                crop_w = max(1, int(round(crop_h * target_ratio)))
-            else:
-                crop_w = w
-                crop_h = max(1, int(round(crop_w / target_ratio)))
-
-            if self.padding > 0:
-                crop_w = max(1, int(round(crop_w * (1.0 - self.padding))))
-                crop_h = max(1, int(round(crop_h * (1.0 - self.padding))))
-
-            eye_center_y = (upper_y + lower_y) / 2.0
-            eyelid_height = max(1.0, lower_y - upper_y)
-            # 单眼视频里下眼睑梯度通常更强，过大的向下偏置会导致眼睛落在画面上方。
-            # 保留少量下方余量，但整体更接近瞳孔/眼裂中心。
-            desired_center_y = eye_center_y + eyelid_height * 0.03
-            desired_center_x = center_x
-
-            x0 = int(round(desired_center_x - crop_w / 2.0))
-            y0 = int(round(desired_center_y - crop_h / 2.0))
-            x0 = max(0, min(x0, w - crop_w))
-            y0 = max(0, min(y0, h - crop_h))
-            x1 = min(w, x0 + crop_w)
-            y1 = min(h, y0 + crop_h)
-            cropped = frame_bgr[y0:y1, x0:x1]
-            return cropped if cropped.size > 0 else None
-
-        def _enhance_single_eye(self, frame_bgr: Any) -> Any:
-            gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
-            gray = self.clahe.apply(gray)
-            p2, p98 = np.percentile(gray, (1, 99))
-            if p98 > p2:
-                gray = np.clip(gray, p2, p98)
-                gray = ((gray - p2) / (p98 - p2) * 255).astype(np.uint8)
-            return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-
-        def extract(self, frame_bgr: Any) -> tuple[Any, float]:
-            cropped = self._crop_single_eye(frame_bgr)
-            if cropped is None:
-                return None, 0.0
-            enhanced = self._enhance_single_eye(cropped)
-            roi_tensor = self.preprocessor(enhanced)
-            # single-eye 模式不再依赖面部 landmarks / EAR；固定为非眨眼有效帧。
-            return roi_tensor, 1.0
-
-        def close(self) -> None:
-            return None
-
-    vw._HNM_SINGLE_EYE_NORMALIZER = SingleEyeNormalizer
-    return SingleEyeNormalizer
-
-
-@contextmanager
-def _use_vog_input_mode(vw: Any, input_mode: str | None):
-    resolved_mode = _normalize_input_mode(input_mode)
-    if resolved_mode != INPUT_MODE_SINGLE_EYE:
-        yield resolved_mode
-        return
-
-    original_normalizer = getattr(vw, "MediaPipeEyeNormalizer")
-    vw.MediaPipeEyeNormalizer = _get_single_eye_normalizer_class(vw)
-    try:
-        yield resolved_mode
-    finally:
-        vw.MediaPipeEyeNormalizer = original_normalizer
 
 
 def _compact_timestamp(value: str) -> str:
@@ -1181,11 +982,7 @@ def _render_eye_video(
         end_frame = min(total_frames, int(end_time * fps))
         cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
-    normalizer_cls = (
-        _get_single_eye_normalizer_class(vw)
-        if _normalize_input_mode(input_mode) == INPUT_MODE_SINGLE_EYE
-        else vw.MediaPipeEyeNormalizer
-    )
+    normalizer_cls = getattr(vw, "SingleEyeNormalizer", vw.MediaPipeEyeNormalizer)
     eye_normalizer = normalizer_cls(
         eye="left",
         target_size=target_size,
@@ -1592,14 +1389,13 @@ def analyze_video_with_vertiwisdom(
     model = runtime["model"]
     resolved_input_mode = _normalize_input_mode(input_mode)
     try:
-        with _use_vog_input_mode(vw, resolved_input_mode):
-            results = vw.process_video(
-                video_path=video_path,
-                gaze_model=model,
-                device=device,
-                batch_size=16,
-                progress_callback=None,
-            )
+        results = vw.process_video(
+            video_path=video_path,
+            gaze_model=model,
+            device=device,
+            batch_size=16,
+            progress_callback=None,
+        )
     except ValueError as exc:
         # 常见场景：全部帧被判定为眨眼/无效，触发 numpy min/max on empty array
         # 这里返回可落库的“分析不足”结果，而不是 500。

@@ -76,7 +76,7 @@
 原因：
 
 - 目标机没有 Python
-- 需要打包解释器 + 依赖 + torch + mediapipe + opencv
+- 需要打包解释器 + 依赖 + torch + opencv
 - 这条路线最适合做“runtime/ 解压即跑”
 
 如果不走 conda，也要实现等价目标：
@@ -112,7 +112,6 @@ offline-bundle/
 - torch：`2.11.0`
 - torchvision：`0.26.0`
 - 通道：`cu126`
-- mediapipe：`0.10.14`
 - 推荐驱动：`560.35.03+`
 
 关键提醒：

@@ -5,6 +5,8 @@
 /build/
 /captures/
 .DS_Store
+__pycache__/
+*.pyc
 
 /app/build/
 .conda

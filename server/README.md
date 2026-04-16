@@ -81,7 +81,7 @@ uvicorn main:app --host 0.0.0.0 --port 8787
     - `startedAt`
     - `durationSec`
     - `patientId`
-    - `inputMode`
+    - `inputMode`：兼容保留字段，服务端当前始终按 `single_eye` 处理
     - `video`（mp4/mov/avi 等）
 - `GET /api/records?accountId=xxx&limit=100`
   - 查看已接收记录
