@@ -19,3 +19,11 @@ __pycache__/
 /server/.venv-hospital
 /server/__pycache__/
 /dist
+
+# Local agent notes / placeholders
+/.agents/AGENTS.md
+/.agents/memory/.gitkeep
+
+# Local smoke-test assets
+/test/*.mp4
+/test/debug/
