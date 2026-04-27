@@ -104,8 +104,3 @@ App 上传时会自动拼接 `/api/videos`，所以地址只填到端口即可�
 - 眼部视频：`server/data/eye_videos/`
 - ZIP：`server/data/packages/`
 - 兼容迁移：如果存在旧的 `server/data/records.jsonl` 且数据库为空，启动时会自动迁移到 SQLite。
-
-## 8) 数据库建议
-
-- 当前落地：`SQLite`（零运维、单机可靠，适合你现在本地+单服务部署）
-- 后续上线到多实例/高并发时，建议迁移 `PostgreSQL`（并发写、备份、权限管理更完整）
