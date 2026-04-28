@@ -741,25 +741,20 @@ def _candidate_vog_module_dirs() -> list[Path]:
 def _candidate_checkpoint_paths() -> list[Path]:
     env_ckpt = os.getenv("VOG_CHECKPOINT_PATH", "").strip()
     env_ckpt_path = Path(env_ckpt).expanduser().resolve() if env_ckpt else None
-    candidates = [
-        env_ckpt_path if env_ckpt_path else Path("/nonexistent"),
-        MODEL_DIR / "checkpoint_best.pth",
-        MODEL_DIR / "checkpoint_latest.pth",
-        MODEL_DIR / "checkpoints_best.pth",
-        VOG_PROJECT_DIR / "checkpoints/gaze/checkpoint_best.pth",
-        VOG_PROJECT_DIR / "checkpoints/gaze/checkpoint_latest.pth",
-        VOG_PROJECT_DIR / "checkpoints/checkpoint_best.pth",
-        VOG_PROJECT_DIR / "checkpoints/checkpoint_latest.pth",
-    ]
-    for project_dir in DISCOVERED_VOG_PROJECT_DIRS:
-        candidates.extend(
-            [
-                project_dir / "checkpoints/gaze/checkpoint_best.pth",
-                project_dir / "checkpoints/gaze/checkpoint_latest.pth",
-                project_dir / "checkpoints/checkpoint_best.pth",
-                project_dir / "checkpoints/checkpoint_latest.pth",
-            ]
-        )
+    candidates: list[Path] = [env_ckpt_path if env_ckpt_path else Path("/nonexistent")]
+    for base in ("checkpoint_best", "checkpoint_latest", "checkpoints_best"):
+        candidates.append(MODEL_DIR / f"{base}.safetensors")
+        candidates.append(MODEL_DIR / f"{base}.pth")
+    vog_pairs = (
+        ("checkpoints/gaze", "checkpoint_best"),
+        ("checkpoints/gaze", "checkpoint_latest"),
+        ("checkpoints", "checkpoint_best"),
+        ("checkpoints", "checkpoint_latest"),
+    )
+    for root in (VOG_PROJECT_DIR, *DISCOVERED_VOG_PROJECT_DIRS):
+        for sub, name in vog_pairs:
+            candidates.append(root / sub / f"{name}.safetensors")
+            candidates.append(root / sub / f"{name}.pth")
     return _unique_paths(candidates)
 
 

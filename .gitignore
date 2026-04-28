@@ -26,3 +26,6 @@ __pycache__/
 # Local smoke-test assets
 /test/*.mp4
 /test/debug/
+
+# Local tmp scripts (not committed)
+/tmp/

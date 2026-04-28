@@ -1,0 +1,22 @@
+{
+  "format": "hnm.safetensors+config.v1",
+  "model_type": "GazeSwinUNet",
+  "weights": {
+    "filename": "checkpoint_best.safetensors",
+    "source_checkpoint": "checkpoint_best.pth",
+    "source_state_dict_key": "model_state_dict"
+  },
+  "architecture": {
+    "img_size": [36, 60],
+    "in_chans": 3,
+    "embed_dim": 96,
+    "depths": [2, 2, 2],
+    "num_heads": [3, 6, 12],
+    "window_size": 7,
+    "drop_rate": 0.1
+  },
+  "notes": [
+    "This config matches server/vendor/SwinUNet-VOG/vertiwisdom.py:load_gaze_model().",
+    "safetensors stores only tensors; optimizer/scheduler/epoch metrics from the .pth are intentionally not included."
+  ]
+}

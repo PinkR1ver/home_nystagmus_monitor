@@ -37,6 +37,7 @@
 - Add auth + signed upload + retry policy
 - Add patient workflow and clinical export format
 - Add real-time signal curve and quality gate
+- Standardize model packaging (`safetensors` + `config.json`) for server deploy
 
 ## Data Management Policy (Mobile + Server)
 - Source of truth is split by responsibility:

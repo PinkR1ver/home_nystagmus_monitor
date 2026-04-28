@@ -9,6 +9,7 @@ Pillow
 
 torch
 torchvision
+safetensors
 
 matplotlib
 reportlab

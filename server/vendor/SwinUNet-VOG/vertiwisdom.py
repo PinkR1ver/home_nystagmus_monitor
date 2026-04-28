@@ -320,7 +320,6 @@ MediaPipeEyeNormalizer = SingleEyeNormalizer
 # ==============================================================================
 @st.cache_resource
 def load_gaze_model(ckpt_path: str, device: torch.device):
-    checkpoint = torch.load(ckpt_path, map_location=device, weights_only=False)
     model = GazeSwinUNet(
         img_size=(36, 60),
         in_chans=3,
@@ -330,7 +329,15 @@ def load_gaze_model(ckpt_path: str, device: torch.device):
         window_size=7,
         drop_rate=0.1,
     )
-    model.load_state_dict(checkpoint["model_state_dict"])
+    lower = ckpt_path.lower()
+    if lower.endswith(".safetensors"):
+        from safetensors.torch import load_file
+
+        state = load_file(ckpt_path, device="cpu")
+        model.load_state_dict(state, strict=True)
+    else:
+        checkpoint = torch.load(ckpt_path, map_location=device, weights_only=False)
+        model.load_state_dict(checkpoint["model_state_dict"], strict=True)
     model.to(device)
     model.eval()
     return model
