@@ -9,22 +9,22 @@ protocol NystagmusAnalysisEngine {
 
 enum AnalysisError: LocalizedError {
     case unreadableVideo
+    case noModelSamples
 
     var errorDescription: String? {
         switch self {
         case .unreadableVideo:
             return "The selected video could not be read."
+        case .noModelSamples:
+            return "No usable eye ROI frames were available for gaze model inference."
         }
     }
 }
 
 struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
-    private let modelFileName = "swinunet_web"
-    private let modelExtension = "onnx"
+    private let gazeEstimator: GazeEstimator = ONNXRuntimeGazeEstimator()
 
     func analyze(videoURL: URL, source: CaptureSource) async throws -> AnalysisResult {
-        try await Task.sleep(nanoseconds: 900_000_000)
-
         let asset = AVURLAsset(url: videoURL)
         let duration = try await asset.load(.duration).seconds
         guard duration.isFinite, duration > 0 else {
@@ -32,21 +32,18 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
         }
 
         let fileSize = (try? FileManager.default.attributesOfItem(atPath: videoURL.path)[.size] as? NSNumber)?.doubleValue ?? 0
-        let seed = abs(videoURL.lastPathComponent.hashValue)
-        let signalStrength = min(0.96, max(0.18, (sin(Double(seed % 900) / 143.0) + 1.0) / 2.0))
+        let modelSeries = try makeModelAngleSeries(videoURL: videoURL, duration: duration)
         let durationQuality = min(1.0, duration / 12.0)
         let fileQuality = min(1.0, max(0.25, log10(max(fileSize, 1)) / 8.0))
-        let quality = min(0.98, max(0.32, durationQuality * 0.58 + fileQuality * 0.42))
-        let confidence = min(0.97, max(0.38, signalStrength * 0.72 + quality * 0.28))
-        let fps = 30.0
-        let raw = makeAngleSeries(duration: duration, signalStrength: signalStrength, quality: quality, fps: fps)
-        let processor = SignalProcessor(fps: fps)
-        let pitch = processor.process(raw.pitch)
-        let yaw = processor.process(raw.yaw)
-        let detection = NystagmusDetector(fps: fps).detect(pitch: pitch, yaw: yaw)
+        let quality = min(0.98, max(0.08, modelSeries.successRate * 0.62 + durationQuality * 0.23 + fileQuality * 0.15))
+        let processor = SignalProcessor(fps: modelSeries.fps)
+        let pitch = processor.process(modelSeries.pitch)
+        let yaw = processor.process(modelSeries.yaw)
+        let detection = NystagmusDetector(fps: processor.targetSampleRate).detect(pitch: pitch, yaw: yaw)
         let dominantAxis = detection.horizontal.confidence >= detection.vertical.confidence ? detection.horizontal : detection.vertical
         let beatFrequency = dominantAxis.frequencyHz
         let peakVelocity = max(detection.horizontal.spv, detection.vertical.spv)
+        let confidence = min(0.97, max(0.12, max(detection.horizontal.confidence, detection.vertical.confidence) * 0.72 + quality * 0.28))
         let horizontalSummary = makeAxisSummary(title: "Horizontal yaw", detection: detection.horizontal, samples: yaw)
         let verticalSummary = makeAxisSummary(title: "Vertical pitch", detection: detection.vertical, samples: pitch)
         let evidenceFrames = generateEyeEvidenceFrames(videoURL: videoURL, duration: duration, detection: detection)
@@ -70,17 +67,18 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
             beatFrequencyHz: beatFrequency,
             peakVelocity: peakVelocity,
             qualityScore: quality,
-            modelName: bundledModelName(),
+            modelName: gazeEstimator.modelName,
             summary: summary(for: finding, detection: detection),
             samples: makeSamples(duration: duration, pitch: pitch, yaw: yaw),
             horizontalAxis: horizontalSummary,
             verticalAxis: verticalSummary,
             processingSteps: [
                 "ROI crop",
-                "Gaze vector",
+                "ONNX Runtime gaze vector",
                 "NaN interpolation",
-                "Median filter",
-                "Low-pass filter",
+                "0.1 Hz high-pass",
+                "6 Hz low-pass",
+                "600 Hz resample",
                 "Fast/slow phase"
             ],
             eyePreviewFrameURLs: evidenceFrames.map(\.cropFrameURL),
@@ -89,45 +87,56 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
         )
     }
 
-    private func bundledModelName() -> String {
-        Bundle.main.url(forResource: modelFileName, withExtension: modelExtension) == nil
-            ? "Prototype heuristic"
-            : "\(modelFileName).\(modelExtension)"
-    }
-
     private func summary(for finding: NystagmusFinding, detection: NystagmusDetectionResult) -> String {
         switch finding {
         case .detected:
-            return "\(detection.summary) Use this screen as a demo result, not a clinical diagnosis."
+            return "\(detection.summary) Gaze vectors were estimated locally with the bundled ONNX model."
         case .notDetected:
-            return "\(detection.summary) The prototype did not find a strong repeatable oscillation pattern in this sample."
+            return "\(detection.summary) The ONNX gaze series did not show a strong repeatable oscillation pattern in this sample."
         case .inconclusive:
             return "Video quality or duration was not strong enough for a confident result. Capture another sample with steadier framing."
         }
     }
 
-    private func makeAngleSeries(duration: Double, signalStrength: Double, quality: Double, fps: Double) -> (pitch: [Double], yaw: [Double]) {
-        let count = max(36, min(420, Int(duration * fps)))
-        let frequency = 0.7 + signalStrength * 3.3
-        let horizontalAmplitude = 0.8 + signalStrength * 5.2
-        let verticalAmplitude = 0.35 + signalStrength * 1.4
+    private func makeModelAngleSeries(videoURL: URL, duration: Double) throws -> (pitch: [Double], yaw: [Double], fps: Double, successRate: Double) {
+        let fps = 30.0
+        let frameCount = max(12, min(420, Int(duration * fps)))
+        let asset = AVURLAsset(url: videoURL)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.requestedTimeToleranceBefore = .zero
+        generator.requestedTimeToleranceAfter = CMTime(seconds: 0.02, preferredTimescale: 600)
+        let cropper = EyeROICropper()
 
-        var pitch: [Double] = []
-        var yaw: [Double] = []
-        pitch.reserveCapacity(count)
-        yaw.reserveCapacity(count)
+        var pitch = [Double]()
+        var yaw = [Double]()
+        pitch.reserveCapacity(frameCount)
+        yaw.reserveCapacity(frameCount)
+        var successCount = 0
 
-        for index in 0..<count {
-            let time = Double(index) / fps
-            let progress = Double(index) / Double(max(count - 1, 1))
-            let wave = sin(2.0 * .pi * frequency * time)
-            let micro = sin(2.0 * .pi * (frequency * 4.5) * time) * 0.18
-            let drift = sin(progress * .pi * 1.4) * 0.32
-            let envelope = 0.42 + quality * 0.58
-            yaw.append((wave + micro) * horizontalAmplitude * envelope + drift)
-            pitch.append(cos(2.0 * .pi * frequency * 0.55 * time) * verticalAmplitude * envelope)
+        for index in 0..<frameCount {
+            let seconds = Double(index) / fps
+            let time = CMTime(seconds: min(seconds, max(0, duration - 0.001)), preferredTimescale: 600)
+            guard let image = try? generator.copyCGImage(at: time, actualTime: nil),
+                  let crop = cropper.crop(from: image),
+                  let vector = try? gazeEstimator.estimate(from: crop.image)
+            else {
+                pitch.append(.nan)
+                yaw.append(.nan)
+                continue
+            }
+
+            let angles = GazeAngleFitter.vectorToAngles(vector)
+            pitch.append(angles.pitchDeg)
+            yaw.append(angles.yawDeg)
+            successCount += 1
         }
-        return (pitch, yaw)
+
+        guard successCount > 0 else {
+            throw AnalysisError.noModelSamples
+        }
+
+        return (pitch, yaw, fps, Double(successCount) / Double(frameCount))
     }
 
     private func makeSamples(duration: Double, pitch: [Double], yaw: [Double]) -> [GazeSample] {
@@ -247,7 +256,7 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
     }
 }
 
-private enum EyeROIMode {
+enum EyeROIMode {
     case visionFaceLandmark
     case opticalSingleEyeFallback
 
@@ -261,13 +270,13 @@ private enum EyeROIMode {
     }
 }
 
-private struct EyeROICrop {
+struct EyeROICrop {
     let image: CGImage
     let mode: EyeROIMode
     let normalizedRect: CGRect
 }
 
-private struct EyeROICropper {
+struct EyeROICropper {
     func crop(from image: CGImage) -> EyeROICrop? {
         if let rect = visionEyeRect(in: image), let cropped = image.cropping(to: rect) {
             return EyeROICrop(image: cropped, mode: .visionFaceLandmark, normalizedRect: normalized(rect, image: image))

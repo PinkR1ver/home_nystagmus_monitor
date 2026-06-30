@@ -17,6 +17,9 @@
 		A10100000000000000000008 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10200000000000000000008 /* Components.swift */; };
 		A10100000000000000000009 /* swinunet_web.onnx in Resources */ = {isa = PBXBuildFile; fileRef = A10200000000000000000009 /* swinunet_web.onnx */; };
 		A1010000000000000000000A /* NystagmusSignalAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1020000000000000000000A /* NystagmusSignalAnalysis.swift */; };
+		A1010000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1020000000000000000000B /* Assets.xcassets */; };
+		B10100000000000000000001 /* ONNXRuntimeGazeEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10200000000000000000001 /* ONNXRuntimeGazeEstimator.swift */; };
+		B10100000000000000000002 /* onnxruntime in Frameworks */ = {isa = PBXBuildFile; productRef = B10D00000000000000000001 /* onnxruntime */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +35,8 @@
 		A10200000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10200000000000000000011 /* HomeNystagmusMonitoriOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomeNystagmusMonitoriOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1020000000000000000000A /* NystagmusSignalAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NystagmusSignalAnalysis.swift; sourceTree = "<group>"; };
+		A1020000000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B10200000000000000000001 /* ONNXRuntimeGazeEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONNXRuntimeGazeEstimator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,6 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B10100000000000000000002 /* onnxruntime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +84,7 @@
 			children = (
 				A10200000000000000000003 /* VideoAnalysisService.swift */,
 				A10200000000000000000004 /* CameraVideoPicker.swift */,
+				B10200000000000000000001 /* ONNXRuntimeGazeEstimator.swift */,
 				A1020000000000000000000A /* NystagmusSignalAnalysis.swift */,
 			);
 			path = Services;
@@ -99,6 +106,7 @@
 			children = (
 				A10200000000000000000010 /* Info.plist */,
 				A10200000000000000000009 /* swinunet_web.onnx */,
+				A1020000000000000000000B /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -127,6 +135,9 @@
 			dependencies = (
 			);
 			name = HomeNystagmusMonitoriOS;
+			packageProductDependencies = (
+				B10D00000000000000000001 /* onnxruntime */,
+			);
 			productName = HomeNystagmusMonitoriOS;
 			productReference = A10200000000000000000011 /* HomeNystagmusMonitoriOS.app */;
 			productType = "com.apple.product-type.application";
@@ -155,6 +166,9 @@
 				Base,
 			);
 			mainGroup = A10400000000000000000001;
+			packageReferences = (
+				B10C00000000000000000001 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */,
+			);
 			productRefGroup = A10400000000000000000007 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -170,6 +184,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10100000000000000000009 /* swinunet_web.onnx in Resources */,
+				A1010000000000000000000B /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,6 +199,7 @@
 				A10100000000000000000002 /* AnalysisModels.swift in Sources */,
 				A10100000000000000000003 /* VideoAnalysisService.swift in Sources */,
 				A10100000000000000000004 /* CameraVideoPicker.swift in Sources */,
+				B10100000000000000000001 /* ONNXRuntimeGazeEstimator.swift in Sources */,
 				A1010000000000000000000A /* NystagmusSignalAnalysis.swift in Sources */,
 				A10100000000000000000005 /* ContentView.swift in Sources */,
 				A10100000000000000000006 /* CaptureStartView.swift in Sources */,
@@ -387,6 +403,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B10C00000000000000000001 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/onnxruntime-swift-package-manager.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.24.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B10D00000000000000000001 /* onnxruntime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B10C00000000000000000001 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */;
+			productName = onnxruntime;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A10800000000000000000001 /* Project object */;
 }

@@ -42,14 +42,14 @@ struct SignalProcessor {
     let fps: Double
     let highPassCutoffHz: Double = 0.1
     let lowPassCutoffHz: Double = 6.0
-    let medianKernelSize: Int = 5
+    let targetSampleRate: Double = 600.0
 
     func process(_ raw: [Double]) -> [Double] {
         guard !raw.isEmpty else { return [] }
         let interpolated = interpolateNaN(raw)
-        let median = medianFilter(interpolated, kernelSize: medianKernelSize)
-        let highPassed = highPassFilter(median, cutoffHz: highPassCutoffHz)
-        return lowPassFilter(highPassed, cutoffHz: lowPassCutoffHz)
+        let highPassed = butterworthZeroPhase(interpolated, cutoffHz: highPassCutoffHz, filterType: .highPass)
+        let lowPassed = butterworthZeroPhase(highPassed, cutoffHz: lowPassCutoffHz, filterType: .lowPass)
+        return resample(lowPassed, targetSampleRate: targetSampleRate)
     }
 
     private func interpolateNaN(_ raw: [Double]) -> [Double] {
@@ -81,33 +81,128 @@ struct SignalProcessor {
         return out.map { $0.isNaN ? 0 : $0 }
     }
 
-    private func medianFilter(_ values: [Double], kernelSize: Int) -> [Double] {
-        guard values.count >= 3 else { return values }
-        let kernel = kernelSize.isMultiple(of: 2) ? kernelSize + 1 : kernelSize
-        let radius = kernel / 2
-        return values.indices.map { index in
-            let start = max(0, index - radius)
-            let end = min(values.count - 1, index + radius)
-            return median(Array(values[start...end]))
+    private enum ButterworthFilterType {
+        case lowPass
+        case highPass
+    }
+
+    private struct Biquad {
+        let b0: Double
+        let b1: Double
+        let b2: Double
+        let a1: Double
+        let a2: Double
+
+        func apply(to values: [Double]) -> [Double] {
+            guard !values.isEmpty else { return [] }
+            var out = [Double](repeating: 0, count: values.count)
+            var x1 = values[0]
+            var x2 = values[0]
+            var y1 = values[0]
+            var y2 = values[0]
+            for index in values.indices {
+                let x0 = values[index]
+                let y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+                out[index] = y0
+                x2 = x1
+                x1 = x0
+                y2 = y1
+                y1 = y0
+            }
+            return out
         }
     }
 
-    private func highPassFilter(_ values: [Double], cutoffHz: Double) -> [Double] {
-        guard values.count > 1 else { return values }
-        let low = lowPassFilter(values, cutoffHz: cutoffHz)
-        return zip(values, low).map { original, baseline in
-            original - baseline
+    private func butterworthZeroPhase(_ values: [Double], cutoffHz: Double, filterType: ButterworthFilterType) -> [Double] {
+        guard values.count > 15, cutoffHz > 0, cutoffHz < fps / 2.0 else { return values }
+        let filtered = applyButterworth(values, cutoffHz: cutoffHz, filterType: filterType)
+        return Array(applyButterworth(Array(filtered.reversed()), cutoffHz: cutoffHz, filterType: filterType).reversed())
+    }
+
+    private func applyButterworth(_ values: [Double], cutoffHz: Double, filterType: ButterworthFilterType) -> [Double] {
+        let sections = [
+            makeBiquad(cutoffHz: cutoffHz, q: 0.61803398875, filterType: filterType),
+            makeBiquad(cutoffHz: cutoffHz, q: 1.61803398875, filterType: filterType)
+        ]
+        let firstOrder = makeFirstOrder(cutoffHz: cutoffHz, filterType: filterType)
+        return firstOrder.apply(to: sections.reduce(values) { partial, section in
+            section.apply(to: partial)
+        })
+    }
+
+    private func makeBiquad(cutoffHz: Double, q: Double, filterType: ButterworthFilterType) -> Biquad {
+        let omega = 2.0 * .pi * cutoffHz / fps
+        let cosOmega = cos(omega)
+        let alpha = sin(omega) / (2.0 * q)
+
+        let b0: Double
+        let b1: Double
+        let b2: Double
+        switch filterType {
+        case .lowPass:
+            b0 = (1.0 - cosOmega) / 2.0
+            b1 = 1.0 - cosOmega
+            b2 = (1.0 - cosOmega) / 2.0
+        case .highPass:
+            b0 = (1.0 + cosOmega) / 2.0
+            b1 = -(1.0 + cosOmega)
+            b2 = (1.0 + cosOmega) / 2.0
+        }
+
+        let a0 = 1.0 + alpha
+        let a1 = -2.0 * cosOmega
+        let a2 = 1.0 - alpha
+        return Biquad(b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: a1 / a0, a2: a2 / a0)
+    }
+
+    private struct FirstOrder {
+        let b0: Double
+        let b1: Double
+        let a1: Double
+
+        func apply(to values: [Double]) -> [Double] {
+            guard !values.isEmpty else { return [] }
+            var out = [Double](repeating: 0, count: values.count)
+            var x1 = values[0]
+            var y1 = values[0]
+            for index in values.indices {
+                let x0 = values[index]
+                let y0 = b0 * x0 + b1 * x1 - a1 * y1
+                out[index] = y0
+                x1 = x0
+                y1 = y0
+            }
+            return out
         }
     }
 
-    private func lowPassFilter(_ values: [Double], cutoffHz: Double) -> [Double] {
-        guard values.count > 1 else { return values }
-        let dt = 1.0 / fps
-        let rc = 1.0 / (2.0 * .pi * cutoffHz)
-        let alpha = dt / (rc + dt)
+    private func makeFirstOrder(cutoffHz: Double, filterType: ButterworthFilterType) -> FirstOrder {
+        let omega = 2.0 * .pi * cutoffHz / fps
+        let cosOmega = cos(omega)
+        let sinOmega = sin(omega)
+        let gamma = cosOmega / (1.0 + sinOmega)
+        switch filterType {
+        case .lowPass:
+            return FirstOrder(b0: (1.0 - gamma) / 2.0, b1: (1.0 - gamma) / 2.0, a1: -gamma)
+        case .highPass:
+            return FirstOrder(b0: (1.0 + gamma) / 2.0, b1: -(1.0 + gamma) / 2.0, a1: -gamma)
+        }
+    }
+
+    private func resample(_ values: [Double], targetSampleRate: Double) -> [Double] {
+        guard values.count > 1, targetSampleRate > 0 else { return values }
+        let duration = Double(values.count - 1) / fps
+        let targetCount = max(values.count, Int(duration * targetSampleRate))
+        guard targetCount > 1 else { return values }
+
         var out = values
-        for index in 1..<out.count {
-            out[index] = out[index - 1] + alpha * (values[index] - out[index - 1])
+        out = [Double](repeating: 0, count: targetCount)
+        for index in 0..<targetCount {
+            let sourcePosition = Double(index) / Double(targetCount - 1) * Double(values.count - 1)
+            let left = Int(floor(sourcePosition)).clamped(to: 0...(values.count - 1))
+            let right = min(left + 1, values.count - 1)
+            let fraction = sourcePosition - Double(left)
+            out[index] = values[left] * (1.0 - fraction) + values[right] * fraction
         }
         return out
     }
@@ -142,15 +237,14 @@ struct NystagmusDetector {
         guard angles.count >= 3 else {
             return AxisDetection(present: false, direction: "none", directionLabel: "None", amplitude: 0, frequencyHz: 0, confidence: 0, spv: 0, cvPercent: 0, patterns: [])
         }
-        let velocity = computeVelocity(angles)
-        let direction = analyzeDirection(velocity)
-        let frequency = computeFrequency(angles)
         let amplitude = percentile(angles, 95) - percentile(angles, 5)
         let analysis = analyzePatterns(angles, isHorizontal: isHorizontal)
+        let frequency = estimateFrequency(from: analysis.patterns)
         let patterns = analysis.patterns
         let cv = analysis.cvPercent
         let spv = analysis.spv
         let present = analysis.hasNystagmus
+        let confidence = present ? min(0.98, max(0.45, 1.0 - cv / 120.0)) : 0.0
         let directionLabel: String
         switch analysis.direction {
         case "right", "left", "up", "down":
@@ -166,7 +260,7 @@ struct NystagmusDetector {
             directionLabel: directionLabel,
             amplitude: amplitude,
             frequencyHz: frequency,
-            confidence: direction.confidence,
+            confidence: confidence,
             spv: spv,
             cvPercent: cv,
             patterns: patterns
@@ -353,50 +447,11 @@ struct NystagmusDetector {
         return ("bidirectional", 0.5)
     }
 
-    private func computeFrequency(_ angles: [Double]) -> Double {
-        let n = angles.count
-        guard n >= Int(fps) else { return 0 }
-        let mean = angles.reduce(0, +) / Double(n)
-        let centered = angles.map { $0 - mean }
-        let freqStep = fps / Double(n)
-        var bestFrequency = 0.0
-        var bestPower = 0.0
-
-        for k in 1..<(n / 2) {
-            let frequency = Double(k) * freqStep
-            if frequency < minFrequency || frequency > maxFrequency {
-                continue
-            }
-            var real = 0.0
-            var imag = 0.0
-            for (index, value) in centered.enumerated() {
-                let phase = 2.0 * .pi * Double(k) * Double(index) / Double(n)
-                real += value * cos(phase)
-                imag -= value * sin(phase)
-            }
-            let power = real * real + imag * imag
-            if power > bestPower {
-                bestPower = power
-                bestFrequency = frequency
-            }
-        }
-        return bestFrequency
-    }
-
-    private func computeSpv(_ velocity: [Double], direction: String) -> Double {
-        guard !velocity.isEmpty else { return 0 }
-        let candidates: [Double]
-        switch direction {
-        case "positive":
-            candidates = velocity.filter { $0 < 0 }.map { abs($0) }
-        case "negative":
-            candidates = velocity.filter { $0 > 0 }.map { abs($0) }
-        case "bidirectional":
-            candidates = velocity.map { abs($0) }.sorted().prefix(velocity.count / 2).map { $0 }
-        default:
-            candidates = []
-        }
-        return median(candidates)
+    private func estimateFrequency(from patterns: [SignalPattern]) -> Double {
+        guard !patterns.isEmpty else { return 0 }
+        let periods = patterns.map { max($0.endTime - $0.startTime, 0.0001) }
+        let frequency = 1.0 / max(median(periods), 0.0001)
+        return frequency.clamped(to: minFrequency...maxFrequency)
     }
 
     private func coefficientOfVariationUsingMAD(_ values: [Double]) -> Double {

@@ -7,6 +7,8 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showingCamera = false
     @State private var showingImporter = false
+    @State private var showingUSBCameraParameters = false
+    @State private var showingPrincipleFigure = false
 
     private let engine: NystagmusAnalysisEngine = PrototypeNystagmusAnalysisEngine()
 
@@ -34,7 +36,9 @@ struct ContentView: View {
                             onStartCamera: {
                                 showingCamera = true
                             },
-                            onImportVideo: { showingImporter = true }
+                            onImportVideo: { showingImporter = true },
+                            onUSBCamera: { showingUSBCameraParameters = true },
+                            onShowPrinciple: { showingPrincipleFigure = true }
                         )
                     }
                 }
@@ -56,6 +60,16 @@ struct ContentView: View {
                 analyze(url: url, source: .camera)
             }
             .ignoresSafeArea()
+        }
+        .sheet(isPresented: $showingUSBCameraParameters) {
+            NavigationStack {
+                USBCameraParametersView()
+            }
+        }
+        .sheet(isPresented: $showingPrincipleFigure) {
+            NavigationStack {
+                PrincipleFigureView()
+            }
         }
         .fileImporter(
             isPresented: $showingImporter,

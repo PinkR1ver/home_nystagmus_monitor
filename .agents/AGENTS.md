@@ -28,12 +28,14 @@
 - Environment: Android Studio + OpenJDK available; Xcode available for iPhone prototype
 - Algorithm: integrated baseline implementation with ongoing optimization
 - Primary objective now: "reliability, clarity, and production readiness"
-- iPhone prototype currently has no database. The ONNX asset is bundled, but prototype dashboard analysis still uses a replaceable local Swift analysis service rather than real ONNX inference.
+- iPhone prototype currently has no database. Dashboard analysis now uses the bundled `swinunet_web.onnx` through ONNX Runtime iOS (`onnxruntime-swift-package-manager` pinned at `1.24.2`) to estimate per-frame 3D gaze vectors, then converts vectors to pitch/yaw for local signal analysis.
 - iPhone prototype capture supports fixed back lens choices (`0.5`, `1`, `2`, `5`), tap/keyboard start-stop, and iPhone 16-series Camera Control via `AVCaptureEventInteraction`.
-- iPhone dashboard is now evidence-oriented after VertiWisdom: looped cropped-eye preview, horizontal/vertical signal charts, fast/slow phase pattern overlays, SPV/pattern/quality metrics, and a visible signal-processing pipeline.
+- iPhone dashboard is now evidence-oriented after VertiWisdom: looped cropped-eye preview, horizontal/vertical signal charts, fast/slow phase pattern overlays, and SPV/pattern/quality metrics. The processing pipeline diagram was intentionally removed from the prototype dashboard to keep the page direct.
 - iPhone cropped-eye preview uses an automatic ROI pipeline: Apple Vision face landmarks (`leftEye`/`rightEye`) for face videos, with adaptive bright-content optical single-eye ROI fallback and a tighter static fallback when no face/eye landmarks are detected.
-- iPhone prototype nystagmus pattern detection was tightened toward VertiWisdom: upward peak triplets, local prominence, 5 degree minimum amplitude, 0.15-1.5s pattern duration, opposite fast/slow slopes, fast/slow ratio 1.2-10, and 3 consecutive same-direction patterns before positive detection. It is still not a full VertiWisdom port because it does not run SciPy filtering/resampling or the real segmentation model in-app yet.
+- iPhone prototype nystagmus signal processing now follows the VertiWisdom flow in Swift: NaN interpolation, 5th-order Butterworth-style 0.1 Hz high-pass, 6 Hz low-pass, 600 Hz resampling, prominence-based peak/valley turning points, 5 degree minimum amplitude, 0.15-1.5s pattern duration, opposite fast/slow slopes, fast/slow ratio 1.2-10, and 3 consecutive same-direction patterns before positive detection. The filter is a Swift biquad cascade approximation rather than a byte-for-byte SciPy `butter/filtfilt` port.
 - Tapping the cropped-eye preview opens an evidence detail sheet with original video playback, the cropped eye loop, source frames with ROI overlay, timestamps, ROI mode, and average normalized crop size.
+- iPhone prototype home screen includes a USB camera section. Its parameter sheet requests video permission, detects AVFoundation-visible external and built-in cameras, and shows device type, unique ID, active format, FPS ranges, and format count for later USB face-capture work.
+- iPhone prototype home screen includes a principle-figure button that opens a generated scientific cover-style overview image for explaining the Home Nystagmus Monitor workflow: capture, ROI, gaze signal, and pattern analysis.
 
 ## Milestones
 1. Project setup and first runnable screen

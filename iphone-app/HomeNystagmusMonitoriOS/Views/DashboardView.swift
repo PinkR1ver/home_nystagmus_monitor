@@ -17,7 +17,6 @@ struct DashboardView: View {
             AxisPatternChart(axis: result.horizontalAxis, duration: result.durationSeconds, tint: .red, isCompact: isCompact)
             AxisPatternChart(axis: result.verticalAxis, duration: result.durationSeconds, tint: .blue, isCompact: isCompact)
             MetricStrip(result: result, isCompact: isCompact)
-            ProcessingPipeline(steps: result.processingSteps, isCompact: isCompact)
             ClinicalSummaryCard(result: result, isCompact: isCompact)
 
             Button(action: onNewCapture) {
@@ -605,34 +604,6 @@ struct CompactMetric: View {
                 .fill(tint)
                 .frame(height: 3)
         }
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-struct ProcessingPipeline: View {
-    let steps: [String]
-    let isCompact: Bool
-
-    var body: some View {
-        HStack(spacing: 5) {
-            ForEach(Array(steps.prefix(isCompact ? 5 : 6).enumerated()), id: \.offset) { index, step in
-                Text(step)
-                    .font(.system(size: isCompact ? 8.5 : 9.5, weight: .bold))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.62)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 6))
-
-                if index < min(steps.count, isCompact ? 5 : 6) - 1 {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-        }
-        .padding(7)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
     }
 }
