@@ -1,12 +1,14 @@
 # Home Nystagmus Monitor - AGENTS
 
 ## Project Intent
-- Build an Android app for home monitoring of possible nystagmus.
-- App collects session records and uploads them to a remote server.
-- Current phase goal: maintain a stable, product-oriented mobile workflow and continue hardening.
+- Build home monitoring tools for possible nystagmus.
+- Android app collects session records and uploads them to a remote server.
+- iPhone prototype demonstrates the device workflow with capture/import and a polished analysis dashboard.
+- Current phase goal: maintain stable mobile workflows and continue hardening.
 
 ## Current Phase Scope
-- Productized capture, record, and settings workflow
+- Android productized capture, record, and settings workflow
+- iPhone prototype capture/import-to-dashboard workflow
 - Stable app architecture and package structure
 - Account login persistence and account-scoped data flow
 - Camera + ONNX analysis pipeline integration
@@ -20,10 +22,18 @@
 - Use English identifiers in code; product copy can be Chinese.
 
 ## Memory
-- Platform: Android (Kotlin + Jetpack Compose)
-- Environment: Android Studio + OpenJDK available
+- Platforms:
+  - Android: Kotlin + Jetpack Compose in `android-app/`
+  - iPhone prototype: SwiftUI in `iphone-app/`
+- Environment: Android Studio + OpenJDK available; Xcode available for iPhone prototype
 - Algorithm: integrated baseline implementation with ongoing optimization
 - Primary objective now: "reliability, clarity, and production readiness"
+- iPhone prototype currently has no database. The ONNX asset is bundled, but prototype dashboard analysis still uses a replaceable local Swift analysis service rather than real ONNX inference.
+- iPhone prototype capture supports fixed back lens choices (`0.5`, `1`, `2`, `5`), tap/keyboard start-stop, and iPhone 16-series Camera Control via `AVCaptureEventInteraction`.
+- iPhone dashboard is now evidence-oriented after VertiWisdom: looped cropped-eye preview, horizontal/vertical signal charts, fast/slow phase pattern overlays, SPV/pattern/quality metrics, and a visible signal-processing pipeline.
+- iPhone cropped-eye preview uses an automatic ROI pipeline: Apple Vision face landmarks (`leftEye`/`rightEye`) for face videos, with adaptive bright-content optical single-eye ROI fallback and a tighter static fallback when no face/eye landmarks are detected.
+- iPhone prototype nystagmus pattern detection was tightened toward VertiWisdom: upward peak triplets, local prominence, 5 degree minimum amplitude, 0.15-1.5s pattern duration, opposite fast/slow slopes, fast/slow ratio 1.2-10, and 3 consecutive same-direction patterns before positive detection. It is still not a full VertiWisdom port because it does not run SciPy filtering/resampling or the real segmentation model in-app yet.
+- Tapping the cropped-eye preview opens an evidence detail sheet with original video playback, the cropped eye loop, source frames with ROI overlay, timestamps, ROI mode, and average normalized crop size.
 
 ## Milestones
 1. Project setup and first runnable screen

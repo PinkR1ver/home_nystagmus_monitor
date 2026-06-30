@@ -1,5 +1,5 @@
 *.iml
-.gradle/
+/.gradle/
 /local.properties
 /.idea/
 /build/
@@ -8,9 +8,14 @@
 __pycache__/
 *.pyc
 
-/app/build/
+/android-app/.gradle/
+/android-app/.idea/
+/android-app/local.properties
+/android-app/build/
+/android-app/app/build/
 .conda
-.kotlin/
+/.kotlin/
+/android-app/.kotlin/
 
 /server/data
 /server/logs

@@ -1,12 +1,14 @@
 # Home Nystagmus Monitor - AGENTS
 
 ## Project Intent
-- Build an Android app for home monitoring of possible nystagmus.
-- App collects session records and uploads them to a remote server.
-- Current phase goal: maintain a stable, product-oriented mobile workflow and continue hardening.
+- Build home monitoring tools for possible nystagmus.
+- Android app collects session records and uploads them to a remote server.
+- iPhone prototype demonstrates the device workflow with capture/import and a polished analysis dashboard.
+- Current phase goal: maintain stable mobile workflows and continue hardening.
 
 ## Current Phase Scope
-- Productized capture, record, and settings workflow
+- Android productized capture, record, and settings workflow
+- iPhone prototype capture/import-to-dashboard workflow
 - Stable app architecture and package structure
 - Account login persistence and account-scoped data flow
 - Camera + ONNX analysis pipeline integration
@@ -20,10 +22,13 @@
 - Use English identifiers in code; product copy can be Chinese.
 
 ## Memory
-- Platform: Android (Kotlin + Jetpack Compose)
-- Environment: Android Studio + OpenJDK available
+- Platforms:
+  - Android: Kotlin + Jetpack Compose in `android-app/`
+  - iPhone prototype: SwiftUI in `iphone-app/`
+- Environment: Android Studio + OpenJDK available; Xcode available for iPhone prototype
 - Algorithm: integrated baseline implementation with ongoing optimization
 - Primary objective now: "reliability, clarity, and production readiness"
+- iPhone prototype currently has no database and uses a replaceable local analysis service around the bundled ONNX model asset.
 
 ## Milestones
 1. Project setup and first runnable screen
