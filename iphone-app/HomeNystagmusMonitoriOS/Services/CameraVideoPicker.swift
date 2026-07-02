@@ -40,14 +40,50 @@ struct FixedLensCameraRecorder: UIViewControllerRepresentable {
     let onComplete: (URL?) -> Void
 
     func makeUIViewController(context: Context) -> FixedLensCameraViewController {
-        FixedLensCameraViewController(onComplete: onComplete)
+        FixedLensCameraViewController(captureMode: .fixedLens, onComplete: onComplete)
     }
 
     func updateUIViewController(_ uiViewController: FixedLensCameraViewController, context: Context) {}
 }
 
+struct ExternalUSBCameraRecorder: UIViewControllerRepresentable {
+    let settings: USBVideoCaptureSettings
+    let onComplete: (URL?) -> Void
+
+    func makeUIViewController(context: Context) -> FixedLensCameraViewController {
+        FixedLensCameraViewController(captureMode: .externalUSB(settings), onComplete: onComplete)
+    }
+
+    func updateUIViewController(_ uiViewController: FixedLensCameraViewController, context: Context) {}
+}
+
+struct USBVideoCaptureSettings: Equatable {
+    let deviceUniqueID: String
+    let deviceName: String
+    let formatID: String
+    let formatLabel: String
+    let framesPerSecond: Double
+
+    var statusLabel: String {
+        "\(deviceName) · \(formatLabel) · \(Self.fpsLabel(framesPerSecond))"
+    }
+
+    private static func fpsLabel(_ value: Double) -> String {
+        if abs(value.rounded() - value) < 0.01 {
+            return "\(Int(value.rounded())) fps"
+        }
+        return String(format: "%.1f fps", value)
+    }
+}
+
 final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutputRecordingDelegate {
+    fileprivate enum CaptureMode {
+        case fixedLens
+        case externalUSB(USBVideoCaptureSettings)
+    }
+
     private let onComplete: (URL?) -> Void
+    private let captureMode: CaptureMode
     private let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "hnm.fixed-lens-camera.session")
     private let movieOutput = AVCaptureMovieFileOutput()
@@ -62,7 +98,8 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
     private var isConfigured = false
     private var captureEventInteraction: UIInteraction?
 
-    init(onComplete: @escaping (URL?) -> Void) {
+    fileprivate init(captureMode: CaptureMode, onComplete: @escaping (URL?) -> Void) {
+        self.captureMode = captureMode
         self.onComplete = onComplete
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
@@ -103,6 +140,7 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
         lensControl.selectedSegmentIndex = selectedLens.rawValue
         lensControl.selectedSegmentTintColor = .systemCyan
         lensControl.addTarget(self, action: #selector(lensChanged), for: .valueChanged)
+        lensControl.isHidden = isExternalUSB
 
         recordButton.translatesAutoresizingMaskIntoConstraints = false
         recordButton.setImage(UIImage(systemName: "record.circle.fill"), for: .normal)
@@ -123,7 +161,7 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
         cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
 
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
-        statusLabel.text = "Lens locked: \(selectedLens.displayName)"
+        statusLabel.text = isExternalUSB ? "USB camera capture" : "Lens locked: \(selectedLens.displayName)"
         statusLabel.textColor = .white
         statusLabel.font = .preferredFont(forTextStyle: .subheadline)
         statusLabel.textAlignment = .center
@@ -196,12 +234,12 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
     private func requestCameraAccess() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            configureSession(for: selectedLens)
+            configureSession()
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
                 DispatchQueue.main.async {
                     if granted {
-                        self?.configureSession(for: self?.selectedLens ?? .wide)
+                        self?.configureSession()
                     } else {
                         self?.statusLabel.text = "Camera permission is required."
                     }
@@ -212,24 +250,24 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
         }
     }
 
-    private func configureSession(for lens: FixedCameraLens) {
+    private func configureSession(for lens: FixedCameraLens? = nil) {
         sessionQueue.async { [weak self] in
             guard let self else { return }
             self.session.beginConfiguration()
-            self.session.sessionPreset = .high
+            self.session.sessionPreset = self.isExternalUSB ? .inputPriority : .high
 
             for input in self.session.inputs {
                 self.session.removeInput(input)
             }
 
-            let selection = Self.videoDevice(for: lens)
             do {
+                let selection = try self.videoDevice(for: lens ?? self.selectedLens)
                 let videoInput = try AVCaptureDeviceInput(device: selection.device)
                 if self.session.canAddInput(videoInput) {
                     self.session.addInput(videoInput)
                 }
 
-                if let audioDevice = AVCaptureDevice.default(for: .audio) {
+                if !self.isExternalUSB, let audioDevice = AVCaptureDevice.default(for: .audio) {
                     let audioInput = try AVCaptureDeviceInput(device: audioDevice)
                     if self.session.canAddInput(audioInput) {
                         self.session.addInput(audioInput)
@@ -239,16 +277,22 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
                 if !self.session.outputs.contains(self.movieOutput), self.session.canAddOutput(self.movieOutput) {
                     self.session.addOutput(self.movieOutput)
                 }
+                if self.isExternalUSB {
+                    self.movieOutput.connection(with: .video)?.preferredVideoStabilizationMode = .off
+                    self.movieOutput.movieFragmentInterval = CMTime(seconds: 1, preferredTimescale: 600)
+                }
 
                 self.session.commitConfiguration()
-                self.lockZoom(selection.zoomFactor, on: selection.device)
+                if !self.isExternalUSB {
+                    self.lockZoom(selection.zoomFactor, on: selection.device)
+                }
                 self.isConfigured = true
                 if !self.session.isRunning {
                     self.session.startRunning()
                 }
 
                 DispatchQueue.main.async {
-                    self.statusLabel.text = "\(selection.status)\nTap preview, Space, or Camera Control."
+                    self.statusLabel.text = "\(selection.status)\nTap preview or Space."
                 }
             } catch {
                 self.session.commitConfiguration()
@@ -259,7 +303,68 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
         }
     }
 
-    private static func videoDevice(for lens: FixedCameraLens) -> (device: AVCaptureDevice, zoomFactor: CGFloat, status: String) {
+    private var isExternalUSB: Bool {
+        if case .externalUSB = captureMode {
+            return true
+        }
+        return false
+    }
+
+    private func videoDevice(for lens: FixedCameraLens) throws -> (device: AVCaptureDevice, zoomFactor: CGFloat, status: String) {
+        if case .externalUSB(let settings) = captureMode {
+            return try Self.externalVideoDevice(settings: settings)
+        }
+        return Self.fixedLensVideoDevice(for: lens)
+    }
+
+    private static func externalVideoDevice(settings: USBVideoCaptureSettings) throws -> (device: AVCaptureDevice, zoomFactor: CGFloat, status: String) {
+        let discovery = AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.external],
+            mediaType: .video,
+            position: .unspecified
+        )
+        guard let device = discovery.devices.first(where: { $0.uniqueID == settings.deviceUniqueID }) ?? discovery.devices.first else {
+            throw CameraCaptureError.noExternalCamera
+        }
+        try applyUSBSettings(settings, to: device)
+        return (device, 1.0, "USB locked: \(settings.statusLabel)")
+    }
+
+    private static func applyUSBSettings(_ settings: USBVideoCaptureSettings, to device: AVCaptureDevice) throws {
+        guard let format = device.formats.first(where: { CameraFormatSummary(format: $0).id == settings.formatID }) else {
+            throw CameraCaptureError.usbFormatUnavailable
+        }
+
+        let fpsIsSupported = format.videoSupportedFrameRateRanges.contains { range in
+            settings.framesPerSecond >= range.minFrameRate - 0.01 &&
+            settings.framesPerSecond <= range.maxFrameRate + 0.01
+        }
+        guard fpsIsSupported else {
+            throw CameraCaptureError.usbFrameRateUnavailable
+        }
+
+        try device.lockForConfiguration()
+        device.activeFormat = format
+        let frameDuration = CMTime(value: 1_000_000, timescale: CMTimeScale((settings.framesPerSecond * 1_000_000).rounded()))
+        device.activeVideoMinFrameDuration = frameDuration
+        device.activeVideoMaxFrameDuration = frameDuration
+
+        if device.isFocusModeSupported(.continuousAutoFocus) {
+            device.focusMode = .continuousAutoFocus
+        }
+        if device.isExposureModeSupported(.continuousAutoExposure) {
+            device.exposureMode = .continuousAutoExposure
+        }
+        if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+            device.whiteBalanceMode = .continuousAutoWhiteBalance
+        }
+        if device.isLowLightBoostSupported {
+            device.automaticallyEnablesLowLightBoostWhenAvailable = false
+        }
+        device.unlockForConfiguration()
+    }
+
+    private static func fixedLensVideoDevice(for lens: FixedCameraLens) -> (device: AVCaptureDevice, zoomFactor: CGFloat, status: String) {
         let wide = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
 
         switch lens {
@@ -283,12 +388,14 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
     private func lockZoom(_ zoom: CGFloat, on device: AVCaptureDevice) {
         do {
             try device.lockForConfiguration()
-            device.videoZoomFactor = min(max(zoom, device.minAvailableVideoZoomFactor), device.maxAvailableVideoZoomFactor)
-            if device.isFocusModeSupported(.continuousAutoFocus) {
-                device.focusMode = .continuousAutoFocus
-            }
-            if device.isExposureModeSupported(.continuousAutoExposure) {
-                device.exposureMode = .continuousAutoExposure
+            if device.deviceType != .external {
+                device.videoZoomFactor = min(max(zoom, device.minAvailableVideoZoomFactor), device.maxAvailableVideoZoomFactor)
+                if device.isFocusModeSupported(.continuousAutoFocus) {
+                    device.focusMode = .continuousAutoFocus
+                }
+                if device.isExposureModeSupported(.continuousAutoExposure) {
+                    device.exposureMode = .continuousAutoExposure
+                }
             }
             device.unlockForConfiguration()
         } catch {
@@ -299,6 +406,7 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
     }
 
     @objc private func lensChanged() {
+        guard case .fixedLens = captureMode else { return }
         guard let lens = FixedCameraLens(rawValue: lensControl.selectedSegmentIndex) else { return }
         selectedLens = lens
         configureSession(for: lens)
@@ -319,7 +427,13 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
         outputURL = url
         movieOutput.startRecording(to: url, recordingDelegate: self)
         recordButton.tintColor = .white
-        statusLabel.text = "Recording with \(selectedLens.displayName)\nTap preview, Space, or Camera Control to stop."
+        let source: String
+        if case .externalUSB(let settings) = captureMode {
+            source = settings.statusLabel
+        } else {
+            source = selectedLens.displayName
+        }
+        statusLabel.text = "Recording with \(source)\nTap preview, Space, or Camera Control to stop."
     }
 
     @objc private func cancel() {
@@ -348,6 +462,23 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
             self.dismiss(animated: true) { [onComplete] in
                 onComplete(error == nil ? outputFileURL : nil)
             }
+        }
+    }
+}
+
+private enum CameraCaptureError: LocalizedError {
+    case noExternalCamera
+    case usbFormatUnavailable
+    case usbFrameRateUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .noExternalCamera:
+            return "No USB camera detected. Connect a UVC camera and try again."
+        case .usbFormatUnavailable:
+            return "The selected USB camera format is no longer available."
+        case .usbFrameRateUnavailable:
+            return "The selected USB camera frame rate is not supported by this format."
         }
     }
 }

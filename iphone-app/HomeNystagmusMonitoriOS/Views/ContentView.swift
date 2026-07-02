@@ -6,6 +6,9 @@ struct ContentView: View {
     @State private var isAnalyzing = false
     @State private var errorMessage: String?
     @State private var showingCamera = false
+    @State private var showingUSBCameraSetup = false
+    @State private var showingUSBCameraCapture = false
+    @State private var usbCaptureSettings: USBVideoCaptureSettings?
     @State private var showingImporter = false
     @State private var showingUSBCameraParameters = false
     @State private var showingPrincipleFigure = false
@@ -36,6 +39,9 @@ struct ContentView: View {
                             onStartCamera: {
                                 showingCamera = true
                             },
+                            onStartUSBCamera: {
+                                showingUSBCameraSetup = true
+                            },
                             onImportVideo: { showingImporter = true },
                             onUSBCamera: { showingUSBCameraParameters = true },
                             onShowPrinciple: { showingPrincipleFigure = true }
@@ -60,6 +66,29 @@ struct ContentView: View {
                 analyze(url: url, source: .camera)
             }
             .ignoresSafeArea()
+        }
+        .sheet(isPresented: $showingUSBCameraSetup) {
+            NavigationStack {
+                USBCameraCaptureSetupView { settings in
+                    usbCaptureSettings = settings
+                    showingUSBCameraSetup = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        showingUSBCameraCapture = true
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingUSBCameraCapture) {
+            if let usbCaptureSettings {
+                ExternalUSBCameraRecorder(settings: usbCaptureSettings) { url in
+                    showingUSBCameraCapture = false
+                    guard let url else { return }
+                    analyze(url: url, source: .camera)
+                }
+                .ignoresSafeArea()
+            } else {
+                ContentUnavailableView("No USB capture settings", systemImage: "video.slash")
+            }
         }
         .sheet(isPresented: $showingUSBCameraParameters) {
             NavigationStack {
