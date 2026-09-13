@@ -6,7 +6,7 @@
     <title>Home Nystagmus Monitor</title>
     <meta
       name="description"
-      content="A take-home Android app for guided nystagmus monitoring, session capture, and remote upload handoff."
+      content="Take-home nystagmus monitoring prototype for iOS and iPadOS guided capture and session review."
     />
     <meta name="theme-color" content="#fafafa" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,59 +25,100 @@
           <h1>Home Nystagmus Monitor</h1>
           <p class="intro">
             Record at home. Upload securely. Review clinically.
-            A focused Android app for guided nystagmus capture and server-side analysis.
+            Focused iOS and iPadOS workflows for guided nystagmus capture and prototype review.
           </p>
           <div class="download-row">
-            <a class="download-button" href="./downloads/home-nystagmus-monitor-debug.apk" download>
-              Download Android APK
-            </a>
+            <div class="download-actions" aria-label="App links">
+              <a
+                class="download-button"
+                href="https://github.com/PinkR1ver/home_nystagmus_monitor/tree/main/iphone-app"
+              >
+                Download iOS / iPadOS Version
+              </a>
+              <span class="download-button download-button-unavailable" aria-disabled="true">
+                Download Android APK
+              </span>
+            </div>
             <p class="apk-meta">
-              Version <strong>1.0.0-debug</strong> · Android <strong>8.0+ (API 26)</strong>
+              iOS and iPadOS prototype runs from <strong>Xcode</strong> · Android APK temporarily unavailable
             </p>
           </div>
-          <a class="jump-link" href="#server-guide">Explore server setup ↓</a>
         </div>
 
         <div class="intro-story">
-          <div class="compare-card reveal" data-compare-card>
-            <div class="compare-frame">
-              <div class="compare-layer before">
-                <img src="./demo-illustration.svg" alt="Before style preview" />
+          <div class="ios-showcase reveal" aria-label="iOS nystagmus detection preview">
+            <div class="phone-frame">
+              <div class="phone-sensor" aria-hidden="true"></div>
+              <div class="phone-screen">
+                <div class="ios-status">
+                  <span>9:41</span>
+                  <span>iOS</span>
+                </div>
+                <div class="app-title">
+                  <p>Home Nystagmus Monitor</p>
+                  <h2>Detected pattern</h2>
+                </div>
+                <div class="eye-preview">
+                  <div class="eye-scan" aria-hidden="true"></div>
+                  <div class="roi-box" aria-hidden="true"></div>
+                  <span>ROI locked</span>
+                </div>
+                <div class="result-banner">
+                  <span>Nystagmus likely</span>
+                  <strong>Positive</strong>
+                </div>
+                <div class="phone-metrics" aria-label="Analysis metrics">
+                  <div>
+                    <strong>18.6</strong>
+                    <span>H SPV</span>
+                  </div>
+                  <div>
+                    <strong>12</strong>
+                    <span>patterns</span>
+                  </div>
+                  <div>
+                    <strong>92%</strong>
+                    <span>quality</span>
+                  </div>
+                </div>
+                <section class="signal-panel phone-signal">
+                  <div class="signal-head">
+                    <strong>Horizontal signal</strong>
+                    <span>detected</span>
+                  </div>
+                  <svg viewBox="0 0 420 92" role="img" aria-label="Horizontal nystagmus signal">
+                    <path class="grid-line" d="M0 18H420M0 46H420M0 74H420" />
+                    <path class="signal-trace" d="M0 54 C24 22 42 72 66 36 S112 74 138 30 S184 70 210 38 S258 22 282 58 S326 78 350 34 S398 22 420 62" />
+                    <path class="fast-phase" d="M58 39L76 73M134 34L154 70M274 56L292 28M346 36L368 72" />
+                    <path class="slow-phase" d="M22 53L58 39M96 70L134 34M238 42L274 56M310 76L346 36" />
+                  </svg>
+                </section>
               </div>
-              <div class="compare-layer after" data-after-layer>
-                <img src="./demo-illustration.svg" alt="After style preview" />
-              </div>
-              <div class="compare-divider" data-divider></div>
-              <span class="tag before">before</span>
-              <span class="tag after">after</span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value="62"
-                class="compare-slider"
-                aria-label="Compare before and after"
-                data-compare-slider
-              />
             </div>
-            <div class="compare-meta">
-              <p>Generic landing</p>
-              <p>With designed system</p>
+            <div class="ipad-sheet" aria-hidden="true">
+              <div class="sheet-head">
+                <span>Evidence review</span>
+                <strong>iPadOS</strong>
+              </div>
+              <div class="sheet-eye">
+                <div class="sheet-roi"></div>
+              </div>
+              <div class="sheet-chart">
+                <svg viewBox="0 0 360 94">
+                  <path class="grid-line" d="M0 22H360M0 47H360M0 72H360" />
+                  <path class="signal-trace vertical" d="M0 51 C34 41 58 58 92 46 S150 60 185 44 S238 35 270 54 S324 66 360 43" />
+                </svg>
+              </div>
+              <div class="phase-legend">
+                <span><i class="fast-dot"></i>fast</span>
+                <span><i class="slow-dot"></i>slow</span>
+                <span><i class="turn-dot"></i>turn</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="server-entry reveal" id="server-guide">
-        <p class="eyebrow">Server setup</p>
-        <h2>Need backend setup?</h2>
-        <p>
-          Server deployment is less frequently needed during daily use.
-          We moved the full Quick Start into a dedicated page so this landing
-          stays focused and relaxed.
-        </p>
-        <a class="server-link" href="./server.html">Open Server Quick Start →</a>
-      </section>
     </main>
     <script src="./main.js"></script>
   </body>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSCameraUsageDescription</key>
+	<string>用于同时采集全身姿态与头部信号，完成本地康复训练评估。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>用于导入康复训练视频并进行本地姿态复盘。</string>
+	<key>CFBundleName</key>
+	<string>Rehab Motion</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.kk.rehab-demo</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>UILaunchScreen</key>
+	<dict/>
+</dict>
+</plist>

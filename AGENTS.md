@@ -4,9 +4,15 @@
 - Build home monitoring tools for possible nystagmus.
 - Android app collects session records and uploads them to a remote server.
 - iPhone prototype demonstrates the device workflow with capture/import and a polished analysis dashboard.
-- Current phase goal: maintain stable mobile workflows and continue hardening.
+- Current phase goal: discuss and integrate the supplied mobile-kinematics Android App as the next main workstream (2026-09-14 user direction).
 
-## Current Phase Scope
+## Current Mainline (2026-09-14)
+- Read `.agents/spec/README.md` and `.agents/spec/mobile-kinematics-integration.md` before planning new work.
+- Source intake is complete; implementation scope, platform priority and host App remain under discussion.
+- Existing capabilities stay in place as integration sources; earlier hardening backlog is secondary to this mainline.
+- Historical phase snapshot: `.agents/archive/docs/home-nystagmus-phase-20260914.md`; consult only for history.
+
+## Existing Capability Scope
 - Android productized capture, record, and settings workflow
 - iPhone prototype capture/import-to-dashboard workflow
 - Stable app architecture and package structure

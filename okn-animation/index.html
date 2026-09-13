@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OKN Animation</title>
+    <meta
+      name="description"
+      content="用于正常人测试诱发 OKN 眼震的可调条纹动画页面。"
+    />
+    <meta name="theme-color" content="#f7f5ef" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="stage-panel" aria-label="OKN 动画播放区">
+        <div class="top-strip">
+          <div>
+            <p class="eyebrow">Optokinetic nystagmus stimulus</p>
+            <h1>OKN Animation</h1>
+          </div>
+          <div class="status-pill" data-status>Ready</div>
+        </div>
+
+        <div class="stimulus-frame" data-frame>
+          <canvas id="oknCanvas" aria-label="移动条纹 OKN 动画"></canvas>
+        </div>
+      </section>
+
+      <aside class="control-panel" aria-label="OKN 动画控制">
+        <div class="panel-heading">
+          <p class="eyebrow">Session controls</p>
+          <h2>刺激参数</h2>
+        </div>
+
+        <div class="control-block">
+          <label for="speed">速度</label>
+          <div class="control-row">
+            <input id="speed" type="range" min="20" max="520" step="10" value="180" />
+            <output for="speed" data-speed-output>180 px/s</output>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <label for="stripeWidth">条纹宽度</label>
+          <div class="control-row">
+            <input id="stripeWidth" type="range" min="12" max="160" step="2" value="56" />
+            <output for="stripeWidth" data-width-output>56 px</output>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <label for="contrast">对比度</label>
+          <div class="control-row">
+            <input id="contrast" type="range" min="15" max="100" step="5" value="100" />
+            <output for="contrast" data-contrast-output>100%</output>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <label for="duration">时长</label>
+          <div class="control-row">
+            <input id="duration" type="range" min="0" max="180" step="5" value="60" />
+            <output for="duration" data-duration-output>60 s</output>
+          </div>
+        </div>
+
+        <fieldset class="segmented" aria-label="动画方向">
+          <legend>方向</legend>
+          <label>
+            <input type="radio" name="direction" value="right" checked />
+            <span>向右</span>
+          </label>
+          <label>
+            <input type="radio" name="direction" value="left" />
+            <span>向左</span>
+          </label>
+          <label>
+            <input type="radio" name="direction" value="up" />
+            <span>向上</span>
+          </label>
+          <label>
+            <input type="radio" name="direction" value="down" />
+            <span>向下</span>
+          </label>
+        </fieldset>
+
+        <div class="button-grid">
+          <button class="primary" type="button" data-toggle>开始</button>
+          <button type="button" data-fullscreen>全屏</button>
+          <button type="button" data-reset>重置</button>
+        </div>
+
+        <p class="clinical-note">
+          用于正常人测试时的视觉诱发辅助。如出现明显头晕、恶心或不适，应立即停止播放。
+        </p>
+      </aside>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

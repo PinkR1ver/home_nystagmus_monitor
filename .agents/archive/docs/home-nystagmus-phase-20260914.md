@@ -1,0 +1,123 @@
+# 2026-09-14 阶段归档
+
+- Archive date: 2026-09-14
+- Reason: 用户将结合 mobile-kinematics Android App 指定为下一步主线。
+- Replacement: [整合主线](../../spec/mobile-kinematics-integration.md)。
+- 本文件是历史交接，不是当前任务指令。代码保留原位；现有功能文档仍是实现参考。
+- Git 起点：`53a7591`；原分支：`feature/befast-feature-extraction-demo`。
+- 本次快照包含此前未提交的网页更新、iOS 图标/工程配置、Rehab Demo、BEFAST 演示、OKN 页面及相关技能/记忆。
+- Android 既有眼震采集/账户同步与服务端；iPhone 眼视频/USB 采集及 ONNX 分析；Rehab Demo 身体/头姿/视线与双摄深度；BEFAST、OKN 作为已有演示资产保留。
+- 既有能力的构建/真机记录见相关 memory/spec，归档本身未重新运行应用测试，不代表新增验证。
+- 旧生产硬化任务转为背景待办，不再默认优先于整合主线。
+- 本地 Git 快照保留现有模型和演示媒体（含超过 100 MB 的历史素材）；未来远端发布需另行制定大文件策略。
+- Xcode 用户状态、签名身份文件、缩略图与 HyperFrames 缓存留在本机，不纳入快照。
+
+## 阶段交接时的指导文件
+
+以下为切换前 `.agents/AGENTS.md` 原文，历史记录：
+
+```markdown
+# Home Nystagmus Monitor - AGENTS
+
+## Project Intent
+- Build home monitoring tools for possible nystagmus.
+- Android app collects session records and uploads them to a remote server.
+- iPhone prototype demonstrates the device workflow with capture/import and a polished analysis dashboard.
+- Current phase goal: maintain stable mobile workflows and continue hardening.
+
+## Current Phase Scope
+- Android productized capture, record, and settings workflow
+- iPhone prototype capture/import-to-dashboard workflow
+- Stable app architecture and package structure
+- Account login persistence and account-scoped data flow
+- Camera + ONNX analysis pipeline integration
+- Production hardening roadmap (storage, upload reliability, quality controls)
+
+## Rules (Vibe Coding)
+- Keep each step small, runnable, and verifiable.
+- Prefer simple architecture over premature abstractions.
+- Keep algorithm entry points stable so later replacement is cheap.
+- Use clear state-driven UI and avoid hidden side effects.
+- Use English identifiers in code; product copy can be Chinese.
+
+## Memory
+- Platforms:
+  - Android: Kotlin + Jetpack Compose in `android-app/`
+  - iPhone prototype: SwiftUI in `iphone-app/`
+  - Rehabilitation demo: SwiftUI in `rehab-demo/`
+- Environment: Android Studio + OpenJDK available; Xcode available for iPhone prototype
+- Algorithm: integrated baseline implementation with ongoing optimization
+- Primary objective now: "reliability, clarity, and production readiness"
+- iPhone prototype currently has no database. Dashboard analysis now uses the bundled `swinunet_web.onnx` through ONNX Runtime iOS (`onnxruntime-swift-package-manager` pinned at `1.24.2`) to estimate per-frame 3D gaze vectors, then converts vectors to pitch/yaw for local signal analysis.
+- Rehabilitation demo uses three weighted third-party pipelines: YOLO11n Pose for body landmarks, FCQ MobileNetV3 Core ML for independent head pose, and the existing `swinunet_web.onnx` for gaze. It does not use Apple body/face landmark models.
+- Rehabilitation capture prefers the calibrated back `builtInDualWideCamera` (physical wide + ultrawide). Synchronized disparity depth and camera intrinsics lift YOLO joints into camera-space X/Y/Z; unsupported devices fall back to rear single-camera inference.
+- Rehabilitation UI is a dark, media-first clinical capture surface with a live stereo-depth picture-in-picture, skeleton overlay, head/gaze/depth metrics, model latency readout, video import/replay, and a stateful start/stop assessment action.
+- The rehabilitation demo handoff includes a verified 34-second 1080p split-screen model video and an 8-slide Chinese HyperFrames HTML deck under `rehab-demo/showcase/`; all illustrative metrics are labeled as demo/reference data.
+- iPhone prototype capture supports fixed back lens choices (`0.5`, `1`, `2`, `5`), tap/keyboard start-stop, and iPhone 16-series Camera Control via `AVCaptureEventInteraction`.
+- iPhone dashboard is now evidence-oriented after VertiWisdom: looped cropped-eye preview, horizontal/vertical signal charts, fast/slow phase pattern overlays, and SPV/pattern/quality metrics. The processing pipeline diagram was intentionally removed from the prototype dashboard to keep the page direct.
+- iPhone cropped-eye preview uses an automatic ROI pipeline: Apple Vision face landmarks (`leftEye`/`rightEye`) for face videos, with adaptive bright-content optical single-eye ROI fallback and a tighter static fallback when no face/eye landmarks are detected.
+- iPhone prototype nystagmus signal processing now follows the VertiWisdom flow in Swift: NaN interpolation, 5th-order Butterworth-style 0.1 Hz high-pass, 6 Hz low-pass, 600 Hz resampling, prominence-based peak/valley turning points, 5 degree minimum amplitude, 0.15-1.5s pattern duration, opposite fast/slow slopes, fast/slow ratio 1.2-10, and 3 consecutive same-direction patterns before positive detection. The filter is a Swift biquad cascade approximation rather than a byte-for-byte SciPy `butter/filtfilt` port.
+- Tapping the cropped-eye preview opens an evidence detail sheet with original video playback, the cropped eye loop, source frames with ROI overlay, timestamps, ROI mode, and average normalized crop size.
+- iPhone/iPad prototype home screen includes USB camera support. The main capture controls include a USB Capture button that first opens a setup sheet for choosing an AVFoundation-visible `.external` UVC camera, capture format, and FPS, then records to `.mov` and sends the video through the existing dashboard analysis flow. The USB recorder applies the selected mode with `sessionPreset = .inputPriority`, `activeFormat`, fixed `activeVideoMinFrameDuration`/`activeVideoMaxFrameDuration`, no audio input, video stabilization off, and automatic focus/exposure/white-balance where exposed. The USB camera parameter sheet requests video permission, detects AVFoundation-visible external and built-in cameras, shows device identity/current active format, enumerates every supported `AVCaptureDevice.Format` with resolution/codec/FPS/ISO/exposure ranges, highlights high-FPS modes such as 120 fps, and lists AVFoundation-exposed adjustable controls such as focus, exposure, white balance, torch, zoom, and low-light boost.
+- iPhone prototype home screen includes a principle-figure button that opens a generated scientific cover-style overview image for explaining the Home Nystagmus Monitor workflow: capture, ROI, gaze signal, and pattern analysis.
+- The iOS prototype target now supports both iPhone and iPad (`TARGETED_DEVICE_FAMILY = 1,2`) so it can run on iPad mini for USB camera testing. Deployment to a physical iPad still requires Developer Mode enabled on the iPad.
+
+## Milestones
+1. Project setup and first runnable screen
+2. Session workflow and local record list
+3. Detection module and real-time camera pipeline
+4. Account persistence and product copy refinement
+5. Add persistence, upload robustness, permissions, and production hardening
+
+## Next When User Asks
+- Add Room/DataStore persistence for full local continuity
+- Add auth + signed upload + retry policy
+- Add patient workflow and clinical export format
+- Add real-time signal curve and quality gate
+- Standardize model packaging (`safetensors` + `config.json`) for server deploy
+
+## Data Management Policy (Mobile + Server)
+- Source of truth is split by responsibility:
+  - Mobile: capture state, local usability, pending upload queue, local video path.
+  - Server: analysis result, long-term record storage, dashboard management.
+- Sync mode is incremental (not full mirror overwrite).
+- Upload action means "sync":
+  - Mobile uploads pending local videos first.
+  - Then mobile pulls server records for same account and merges by `recordId`.
+- Merge rules:
+  - If `recordId` exists on both sides, server analysis fields overwrite local analysis fields.
+  - Local-only records are kept (do not force delete on client).
+  - Server-only records are allowed to flow back to client (for previously uploaded history continuity).
+  - Keep local `videoPath` when available (server path is not directly reusable on device).
+- "Unable to analyze" is still a valid analysis result:
+  - Must be persisted as analyzed with explicit summary message.
+  - Must not remain in "pending analysis" state forever.
+- Dashboard operation policy:
+  - Dashboard uses archive semantics (not hard-delete business record).
+  - Archived records are hidden from default lists/API responses.
+  - Associated uploaded video file is cleaned up to save disk usage.
+
+## Data Sync Flow (Mermaid)
+```mermaid
+flowchart TD
+    A[Mobile Record Created] --> B[Local status: pending upload]
+    B --> C[User taps Sync]
+    C --> D[Upload pending videos to server]
+    D --> E[Server analyzes and stores record]
+    E --> F[Mobile pulls server records by accountId]
+    F --> G{recordId exists locally?}
+    G -- Yes --> H[Merge: server analysis fields overwrite local]
+    G -- No --> I[Add server record into local list]
+    H --> J[Keep local videoPath if present]
+    I --> K[Mark uploaded/analyzed from server]
+    J --> L[Save local state]
+    K --> L[Save local state]
+    L --> M[UI refreshed with synchronized records]
+```
+
+## Doctor-Side Extension Notes
+- Reuse same `recordId` and account-scoped sync semantics for doctor web/desktop client.
+- Keep archive workflow as metadata state transition, not destructive deletion.
+- Doctor-side should consume server records API as canonical analysis output.
+
+```

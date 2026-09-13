@@ -1,0 +1,16 @@
+The contents of `data/` are licensed under the Creative Commons Attribution
+4.0 International License (CC BY 4.0).
+
+You are free to share and adapt the material for any purpose, including
+commercially, provided you give appropriate credit, link to the licence, and
+indicate whether changes were made.
+
+Full licence text: https://creativecommons.org/licenses/by/4.0/legalcode
+Summary:           https://creativecommons.org/licenses/by/4.0/
+
+Attribution: cite the paper listed in CITATION.cff.
+
+Note on scope. These data are pseudonymous records derived from video of
+research participants. The licence governs reuse of the published tables. It
+does not authorise attempts to re-identify participants, which the consent
+obtained does not permit and which you must not undertake.

@@ -1,0 +1,12 @@
+{
+  "name": "slides",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.8.17 present ./composition",
+    "studio": "npx --yes hyperframes@0.8.17 preview ./composition --background",
+    "check": "npx --yes hyperframes@0.8.17 check ./composition",
+    "render": "npx --yes hyperframes@0.8.17 render ./composition",
+    "publish": "npx --yes hyperframes@0.8.17 publish"
+  }
+}

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>双后摄三信号立体康复评估</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/demo-signals-v4.js"></script>
+    <style>
+      :root{--bg:#101814;--panel:#18231d;--raised:#213027;--fg:#f2f7f3;--muted:#a8b5ad;--mint:#8df0bd;--amber:#f4b760;--sky:#7fc7ee;--red:#ef746f}
+      *{box-sizing:border-box}html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--fg);font-family:Arial,sans-serif}
+      body:before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(141,240,189,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(141,240,189,.035) 1px,transparent 1px);background-size:80px 80px;pointer-events:none}
+      .scene{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;background:var(--bg);padding:66px 72px 54px}.slide-clock{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+      .kicker{color:var(--mint);font-size:22px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}.page{position:absolute;right:72px;top:70px;color:var(--muted);font:18px Menlo,monospace}
+      h1{margin:28px 0 0;max-width:1540px;font-size:82px;line-height:1.08;letter-spacing:-.045em}h2{margin:24px 0 0;max-width:1500px;font-size:66px;line-height:1.12;letter-spacing:-.035em}
+      .sub{margin-top:28px;max-width:1220px;color:var(--muted);font-size:31px;line-height:1.5}.foot{position:absolute;left:72px;bottom:48px;color:var(--muted);font-size:18px}.demo{color:var(--amber);border:1px solid rgba(244,183,96,.5);border-radius:999px;padding:8px 13px;font-size:17px}
+      .panel{background:var(--panel);border:1px solid rgba(242,247,243,.13);border-radius:28px}.mono{font-family:Menlo,monospace;font-variant-numeric:tabular-nums}.label{color:var(--muted);font-size:19px}.big-num{font-size:50px;font-weight:800}.accent{color:var(--mint)}.amber{color:var(--amber)}.sky{color:var(--sky)}
+      .hook-visual{position:absolute;left:72px;right:72px;top:404px;height:482px;display:grid;grid-template-columns:1fr 210px 1fr;gap:28px;align-items:center}.camera{height:260px;padding:34px;display:flex;align-items:center;gap:34px}.lens{width:138px;height:138px;border-radius:50%;border:10px solid #344a3d;background:radial-gradient(circle,#79b4d3 0 10%,#152d3a 12% 36%,#071016 38% 100%);box-shadow:0 0 0 2px rgba(127,199,238,.4)}.camera b{display:block;font-size:31px}.camera span{display:block;color:var(--muted);font-size:22px;margin-top:12px}.plus{font-size:78px;text-align:center;color:var(--mint)}
+      .person{height:360px;position:relative}.person svg{width:100%;height:100%}.ray{stroke:var(--sky);stroke-width:3;stroke-dasharray:12 12;opacity:.65}.bone{stroke:var(--mint);stroke-width:8;stroke-linecap:round}.joint{fill:var(--bg);stroke:var(--mint);stroke-width:5}
+      .capture{position:absolute;left:72px;right:72px;top:390px;height:505px;display:grid;grid-template-columns:420px 170px 1fr;gap:26px;align-items:center}.phone{height:470px;border-radius:62px;background:#090e0b;border:7px solid #34423a;padding:28px}.phone-top{height:140px;display:flex;align-items:center;justify-content:center;gap:24px}.phone-lens{width:92px;height:92px;border-radius:50%;background:radial-gradient(circle,#69a6c4 0 12%,#122936 14% 42%,#05090c 44%);border:7px solid #2d3933}.arrow{height:3px;background:var(--mint);position:relative}.arrow:after{content:"";position:absolute;right:-2px;top:-9px;border-left:18px solid var(--mint);border-top:10px solid transparent;border-bottom:10px solid transparent}.outputs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.output{height:220px;padding:26px}.output .icon{font-size:44px}.output b{display:block;font-size:29px;margin-top:30px}.output p{color:var(--muted);font-size:20px;line-height:1.45}
+      .evidence{position:absolute;left:72px;right:72px;top:350px;height:560px;display:grid;grid-template-columns:1.12fr .88fr;gap:26px}.media-panel{overflow:hidden;position:relative}.media-panel video{width:100%;height:100%;object-fit:cover}.media-panel .tag{position:absolute;left:22px;top:22px;background:rgba(16,24,20,.86);border-radius:12px;padding:10px 14px;font-size:18px}.data-side{padding:30px;display:grid;gap:18px}.data-row{display:grid;grid-template-columns:120px 1fr auto;align-items:center;gap:15px;padding:20px;border-radius:18px;background:var(--raised)}.data-row b{font-size:25px}.data-row em{font-style:normal;color:var(--mint);font-size:17px}.bar{height:10px;border-radius:99px;background:rgba(242,247,243,.09);overflow:hidden}.fill{height:100%;border-radius:inherit;background:var(--mint)}
+      .face-panel video{object-fit:contain;background:#f3f5f2}.signal-cards{display:grid;grid-template-columns:.72fr 1.28fr;gap:18px}.signal{padding:25px}.signal b{display:block;font-size:30px;margin-top:14px}.mini-chart{height:210px;margin-top:20px;width:100%}.gridline{stroke:rgba(242,247,243,.12);stroke-width:1}.line-a{fill:none;stroke:var(--amber);stroke-width:5;stroke-linejoin:round;stroke-linecap:round}.chart-playhead{stroke:var(--mint);stroke-width:2;stroke-dasharray:6 7}.chart-dot{fill:var(--amber)}
+      .phase-side{display:grid;grid-template-rows:116px 1fr;gap:16px}.phase-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.phase-metric{padding:16px 18px;border-radius:20px;background:var(--panel);border:1px solid rgba(242,247,243,.13)}.phase-metric span{display:block;color:var(--muted);font-size:15px}.phase-metric b{display:block;margin-top:9px;font:27px Menlo,monospace}.phase-chart{padding:20px 22px}.phase-head{display:flex;justify-content:space-between;align-items:center}.phase-head b{font-size:22px}.phase-legend{display:flex;gap:15px;color:var(--muted);font-size:14px}.phase-legend i{display:inline-block;width:14px;height:4px;margin-right:6px}.phase-svg{width:100%;height:342px;margin-top:8px}.phase-raw{fill:none;stroke:rgba(242,247,243,.28);stroke-width:2}.phase-filtered{fill:none;stroke:rgba(242,247,243,.8);stroke-width:2.5}.phase-fast{stroke:var(--red);stroke-width:7;stroke-linecap:round}.phase-slow{stroke:var(--sky);stroke-width:7;stroke-linecap:round}.phase-turn{fill:var(--mint);stroke:var(--bg);stroke-width:2.5}
+      .pipeline{position:absolute;left:72px;right:72px;top:380px;display:grid;grid-template-columns:360px 70px 1fr 70px 360px;align-items:center;gap:18px}.node{height:310px;padding:30px}.node h3{font-size:31px;margin:18px 0}.node p{font-size:21px;color:var(--muted);line-height:1.5}.models{display:grid;gap:14px}.model{display:grid;grid-template-columns:240px 1fr 92px;align-items:center;gap:18px;padding:17px 20px;border-radius:17px;background:var(--panel)}.model b{font-size:21px}.model span:last-child{text-align:right;font:21px Menlo,monospace}.runbar{height:12px;background:rgba(242,247,243,.09);border-radius:99px;overflow:hidden}.runbar i{display:block;height:100%;border-radius:inherit}.latest{margin-top:22px;color:var(--mint);font-size:20px}
+      .schema{position:absolute;left:72px;right:72px;top:355px;height:555px;display:grid;grid-template-columns:1fr 1fr;gap:26px}.json{padding:30px 34px;font:22px/1.72 Menlo,monospace}.json .key{color:var(--sky)}.json .val{color:var(--amber)}.quality{padding:32px}.quality h3{font-size:31px}.quality-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}.quality-card{padding:22px;border-radius:20px;background:var(--raised)}.quality-card b{display:block;font-size:34px;margin-top:12px}.quality-note{margin-top:22px;border-left:4px solid var(--mint);padding:16px 20px;color:var(--muted);font-size:21px;line-height:1.45}
+      .boundary{position:absolute;left:72px;right:72px;top:390px;display:grid;grid-template-columns:1fr 1fr;gap:26px}.boundary-card{padding:34px 38px;height:390px}.boundary-card h3{font-size:36px;margin-bottom:26px}.boundary-card li{list-style:none;font-size:25px;line-height:1.55;margin:15px 0;padding-left:35px;position:relative}.boundary-card li:before{content:"✓";position:absolute;left:0;color:var(--mint)}.boundary-card.no li:before{content:"—";color:var(--red)}
+      .next{position:absolute;left:72px;right:72px;top:410px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.step{height:300px;padding:30px}.step .n{color:var(--mint);font:22px Menlo,monospace}.step h3{font-size:32px;margin:25px 0 15px}.step p{font-size:22px;color:var(--muted);line-height:1.5}.close{position:absolute;left:72px;bottom:72px;font-size:28px;color:var(--mint)}
+    </style>
+  </head>
+  <body data-composition-id="root" data-start="0" data-duration="48" data-width="1920" data-height="1080">
+    <section id="scene-stereo-hook" class="scene clip" data-composition-id="stereo-hook" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+      <div id="stereo-hook-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="91" data-layout-ignore></div>
+      <div class="kicker">REHAB VISION SYSTEM</div><div class="page">01 / 08</div>
+      <h1>两个后置镜头，把二维观察升级为立体康复评估。</h1>
+      <div class="hook-visual">
+        <div class="camera panel"><div class="lens"></div><div><b>Wide</b><span>主画面 · 纹理</span></div></div><div class="plus">＋</div>
+        <div class="camera panel"><div class="lens"></div><div><b>Ultra Wide</b><span>第二视角 · 几何</span></div></div>
+      </div><div class="foot">双摄的价值：提供第二视角与深度约束，而不是简单重复拍摄。</div>
+    </section>
+
+    <section id="scene-capture-stack" class="scene clip" data-composition-id="capture-stack" data-start="6" data-duration="6" data-width="1920" data-height="1080">
+      <div id="capture-stack-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="92" data-layout-ignore></div>
+      <div class="kicker">01 · CAPTURE</div><div class="page">02 / 08</div><h2>Dual Wide 同步生成画面、深度和相机标定。</h2>
+      <div class="capture"><div class="phone"><div class="phone-top"><div class="phone-lens"></div><div class="phone-lens"></div></div><div class="person"><svg viewBox="0 0 360 280"><line class="bone" x1="180" y1="50" x2="180" y2="135"/><line class="bone" x1="180" y1="80" x2="125" y2="130"/><line class="bone" x1="180" y1="80" x2="235" y2="130"/><line class="bone" x1="180" y1="135" x2="145" y2="225"/><line class="bone" x1="180" y1="135" x2="215" y2="225"/><circle class="joint" cx="180" cy="40" r="22"/></svg></div></div><div class="arrow"></div><div class="outputs"><div class="output panel"><div class="icon">▣</div><b>RGB Frame</b><p>1920 × 1080<br/>主体纹理</p></div><div class="output panel"><div class="icon sky">⌁</div><b>Depth Map</b><p>320 × 180<br/>相对距离</p></div><div class="output panel"><div class="icon accent">⌖</div><b>Calibration</b><p>内外参<br/>坐标投影</p></div></div></div>
+      <div class="foot">采集配置：builtInDualWideCamera · 30 fps 目标帧率</div>
+    </section>
+
+    <section id="scene-body-pose" class="scene clip" data-composition-id="body-pose" data-start="12" data-duration="6" data-width="1920" data-height="1080">
+      <div id="body-pose-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="93" data-layout-ignore></div>
+      <div class="kicker">02 · BODY</div><div class="page">03 / 08</div><h2>左侧每一帧，都由 YOLO11n Pose 生成同时间点的 2D 关节数据。</h2>
+      <div class="evidence"><div class="media-panel panel"><video id="body-pose-slide-video" src="assets/body-walk-overlay-v4.mp4" muted playsinline preload="metadata" data-start="0" data-duration="6"></video><div class="tag">LAB WALK · YOLO 关键点直接叠加</div></div><div class="data-side panel"><div class="data-row"><span class="label">关键点</span><div class="bar"><div id="slide-visible-fill" class="fill" style="width:82%"></div></div><b id="slide-visible">14 / 17</b></div><div class="data-row"><span class="label">置信度</span><div class="bar"><div id="slide-confidence-fill" class="fill" style="width:78%"></div></div><b id="slide-confidence">0.778</b></div><div class="data-row"><span class="label">踝间距</span><div class="bar"><div id="slide-hip-fill" class="fill" style="width:6%;background:var(--sky)"></div></div><b id="slide-hip">0.061</b></div><div class="data-row"><span class="label">肩部横摆</span><b id="slide-amplitude" class="mono">8.3%</b><em>frame width</em></div></div></div>
+      <div class="foot"><span class="demo">源视频实测</span> 此页只展示真实 2D 结果；相机空间 XYZ 需要真机 Dual Wide 深度。</div>
+    </section>
+
+    <section id="scene-head-gaze" class="scene clip" data-composition-id="head-gaze" data-start="18" data-duration="6" data-width="1920" data-height="1080">
+      <div id="head-gaze-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="94" data-layout-ignore></div>
+      <div class="kicker">03 · EYE SIGNAL</div><div class="page">04 / 08</div><h2>原始轨迹经过滤波、重采样和拐点检测，再分出快相与慢相。</h2>
+      <div class="evidence"><div class="media-panel face-panel panel"><video id="gaze-slide-video" src="assets/gaze-demo-v3.mp4" muted playsinline preload="metadata" data-start="0" data-duration="6"></video><div class="tag">DIRECT EYE VIDEO · SOURCE SYNC</div></div><div class="phase-side"><div class="phase-metrics"><div class="phase-metric"><span>转折点</span><b id="slide-turning">33</b></div><div class="phase-metric"><span>相位候选</span><b id="slide-patterns">12</b></div><div class="phase-metric"><span>连续性门槛</span><b>≥ 3</b></div></div><div class="phase-chart panel"><div class="phase-head"><b>HP 0.1 → LP 6 → 600 Hz → slope ratio</b><div class="phase-legend"><span><i style="background:var(--red)"></i>快相</span><span><i style="background:var(--sky)"></i>慢相</span><span><i style="background:var(--mint)"></i>转折点</span></div></div><svg class="phase-svg" viewBox="0 0 620 342"><line class="gridline" x1="16" y1="171" x2="604" y2="171"/><polyline id="slide-eye-raw" class="phase-raw"/><polyline id="slide-eye-line" class="phase-filtered"/><g id="slide-phase-lines"></g><g id="slide-turning-points"></g><line id="slide-eye-playhead" class="chart-playhead" y1="14" y2="328"/><circle id="slide-eye-dot" class="chart-dot" r="7"/></svg></div></div></div>
+      <div class="foot"><span class="demo">VertiWisdom 参考链路</span> 12 组快/慢相候选；未形成连续 ≥3 组同向模式，因此不伪报阳性。单位为画面宽度百分比，不是角度/SPV。</div>
+    </section>
+
+    <section id="scene-parallel-runtime" class="scene clip" data-composition-id="parallel-runtime" data-start="24" data-duration="6" data-width="1920" data-height="1080">
+      <div id="parallel-runtime-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="95" data-layout-ignore></div>
+      <div class="kicker">04 · RUNTIME</div><div class="page">05 / 08</div><h2>三条带权重模型流水线并行运行，并坚持最新帧优先。</h2>
+      <div class="pipeline"><div class="node panel"><span class="label">INPUT</span><h3>Dual Camera Frame</h3><p>同步帧进入缓冲区；当推理忙碌时丢弃旧帧，避免界面越跑越慢。</p><div class="latest">● latest frame wins</div></div><div class="arrow"></div><div class="models"><div class="model"><b>YOLO11n Pose</b><div class="runbar"><i style="width:45%;background:var(--mint)"></i></div><span>4.5 ms</span></div><div class="model"><b>FCQ Head Pose</b><div class="runbar"><i style="width:6%;background:var(--amber)"></i></div><span>0.6 ms</span></div><div class="model"><b>SwinUNet Gaze</b><div class="runbar"><i style="width:53%;background:var(--sky)"></i></div><span>5.3 ms</span></div></div><div class="arrow"></div><div class="node panel"><span class="label">OUTPUT</span><h3>Unified Snapshot</h3><p>同一时间轴上合并身体、头姿态、眼动与质量标记。</p><div class="latest mono">rehab.frame.v1</div></div></div>
+      <div class="foot"><span class="demo">参考环境数据</span> 推理耗时来自当前开发环境基准，不等同于所有真机性能。</div>
+    </section>
+
+    <section id="scene-session-evidence" class="scene clip" data-composition-id="session-evidence" data-start="30" data-duration="6" data-width="1920" data-height="1080">
+      <div id="session-evidence-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="96" data-layout-ignore></div>
+      <div class="kicker">05 · SESSION DATA</div><div class="page">06 / 08</div><h2>一次采集同时保存信号、置信度与质量证据。</h2>
+      <div class="schema"><div class="json panel">{<br/>  <span class="key">"timestamp"</span>: <span class="val">2.400</span>,<br/>  <span class="key">"body"</span>: { <span class="key">"keypoints2D"</span>: […] },<br/>  <span class="key">"poseConfidence"</span>: <span class="val">0.778</span>,<br/>  <span class="key">"eye"</span>: { <span class="key">"phase"</span>: <span class="val">"fast_candidate"</span> },<br/>  <span class="key">"sourceVideoMeasured"</span>: <span class="val">true</span><br/>}</div><div class="quality panel"><h3>Measured Evidence</h3><div class="quality-grid"><div class="quality-card"><span class="label">人体关键点</span><b>14 / 17</b></div><div class="quality-card"><span class="label">平均置信度</span><b>0.778</b></div><div class="quality-card"><span class="label">相位候选</span><b>12</b></div><div class="quality-card"><span class="label">眼动峰峰值</span><b>14.12%</b></div></div><div class="quality-note">视频、滤波轨迹、快慢相和置信度来自同一时间轴；双摄深度与临床角度指标不在素材中虚构。</div></div></div>
+      <div class="foot"><span class="demo">真实样本摘要</span> 同一份 demo-signals 数据同时驱动影片和 slides。</div>
+    </section>
+
+    <section id="scene-demo-boundary" class="scene clip" data-composition-id="demo-boundary" data-start="36" data-duration="6" data-width="1920" data-height="1080">
+      <div id="demo-boundary-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="97" data-layout-ignore></div>
+      <div class="kicker">06 · DEMO BOUNDARY</div><div class="page">07 / 08</div><h2>当前版本证明工程链路，不宣称临床诊断能力。</h2>
+      <div class="boundary"><div class="boundary-card panel"><h3 class="accent">Demo 已证明</h3><ul><li>双后摄同步采集可运行</li><li>第三方权重模型可加载</li><li>三路信号能统一展示与保存</li><li>算法入口保持可替换</li></ul></div><div class="boundary-card panel no"><h3>仍需验证</h3><ul><li>真人数据集上的准确率</li><li>不同光照与遮挡鲁棒性</li><li>不同设备的性能与热稳定性</li><li>临床适用性与合规要求</li></ul></div></div>
+      <div class="foot">模型许可需随交付核验：YOLO（AGPL-3.0）及 Hugging Face 权重各自条款。</div>
+    </section>
+
+    <section id="scene-next-step" class="scene clip" data-composition-id="next-step" data-start="42" data-duration="6" data-width="1920" data-height="1080">
+      <div id="next-step-clock" class="clip slide-clock" data-start="0" data-duration="6" data-track-index="98" data-layout-ignore></div>
+      <div class="kicker">NEXT</div><div class="page">08 / 08</div><h2>下一步，用真人场景验证端到端精度与稳定性。</h2>
+      <div class="next"><div class="step panel"><div class="n">01</div><h3>采集基准集</h3><p>覆盖不同距离、光照、运动幅度与遮挡情况。</p></div><div class="step panel"><div class="n">02</div><h3>建立对照真值</h3><p>逐项评估关节深度、头姿态和眼动方向误差。</p></div><div class="step panel"><div class="n">03</div><h3>真机压力测试</h3><p>验证帧率、温升、功耗与长时间会话稳定性。</p></div></div>
+      <div class="close">明日 Demo：从两个镜头，到一条可回放的三信号证据链。</div>
+    </section>
+
+    <script type="application/hyperframes-slideshow+json">{"slides":[{"sceneId":"stereo-hook","notes":"开场：重点不是多一个摄像头，而是多了可用于几何约束的第二视角。"},{"sceneId":"capture-stack","notes":"说明 Wide 与 Ultra Wide 同步输出 RGB、深度与标定信息。"},{"sceneId":"body-pose","notes":"左侧改为实验室全身步行，YOLO11n Pose 的骨骼点已经直接叠加在人物画面；右侧数值来自同一视频帧。","autoplay":true},{"sceneId":"head-gaze","notes":"右侧严格展示 VertiWisdom 风格后处理：高通、低通、600Hz 重采样、转折点、快相与慢相。当前样本有12组候选，但没有连续3组同向，因此不报告阳性。","autoplay":true},{"sceneId":"parallel-runtime","notes":"三路模型采用最新帧优先；图中耗时是当前参考环境结果，不代表所有 iPhone。"},{"sceneId":"session-evidence","notes":"一次会话保留原始信号、滤波结果、相位候选、置信度与质量门，便于回放和后续复核。"},{"sceneId":"demo-boundary","notes":"主动说明边界：这是工程 Demo，不是临床诊断或医疗器械性能结论。"},{"sceneId":"next-step","notes":"收尾：明天 Demo 展示完整链路，下一阶段用真人场景做端到端验证。"}]}</script>
+    <script>
+      (function(){
+        var data=window.REHAB_DEMO_SIGNALS;
+        var bodyVideo=document.getElementById("body-pose-slide-video");
+        var eyeVideo=document.getElementById("gaze-slide-video");
+        function frameAt(frames,time,fps){return frames[Math.min(frames.length-1,Math.max(0,Math.round(time*fps)))]}
+        function updateBody(){
+          var frame=frameAt(data.body.frames,(bodyVideo.currentTime||0)%data.body.duration,data.body.sampleFps);
+          document.getElementById("slide-visible").textContent=frame.visible+" / 17";
+          document.getElementById("slide-visible-fill").style.width=(frame.visible/17*100)+"%";
+          document.getElementById("slide-confidence").textContent=frame.confidence.toFixed(3);
+          document.getElementById("slide-confidence-fill").style.width=(frame.confidence*100)+"%";
+          document.getElementById("slide-hip").textContent=frame.ankleSeparation.toFixed(3);
+          document.getElementById("slide-hip-fill").style.width=(frame.ankleSeparation*100)+"%";
+          document.getElementById("slide-amplitude").textContent=(data.body.summary.shoulderSway*100).toFixed(1)+"%";
+        }
+        var analysis=data.eye.analysis, raw=analysis.frames.filter(function(frame){return frame.t<=6}), processed=analysis.processed.filter(function(frame){return frame.t<=6});
+        var values=raw.map(function(frame){return Math.abs(frame.raw)}).concat(processed.map(function(frame){return Math.abs(frame.y)}),[.001]);
+        var eyeMax=Math.max.apply(null,values);
+        function eyeX(time){return 16+Math.min(1,Math.max(0,time/6))*588}
+        function eyeY(value){return 171-(value/eyeMax)*138}
+        document.getElementById("slide-eye-raw").setAttribute("points",raw.map(function(frame){return eyeX(frame.t)+","+eyeY(frame.raw)}).join(" "));
+        document.getElementById("slide-eye-line").setAttribute("points",processed.map(function(frame){return eyeX(frame.t)+","+eyeY(frame.y)}).join(" "));
+        var svgNS="http://www.w3.org/2000/svg", phaseGroup=document.getElementById("slide-phase-lines"), turningGroup=document.getElementById("slide-turning-points");
+        analysis.phases.filter(function(phase){return phase.startT<=6}).forEach(function(phase){
+          var line=document.createElementNS(svgNS,"line");line.setAttribute("class",phase.type==="fast"?"phase-fast":"phase-slow");
+          line.setAttribute("x1",eyeX(phase.startT));line.setAttribute("y1",eyeY(phase.startY));line.setAttribute("x2",eyeX(Math.min(6,phase.endT)));line.setAttribute("y2",eyeY(phase.endY));phaseGroup.appendChild(line);
+        });
+        analysis.turningPoints.filter(function(point){return point.t<=6}).forEach(function(point){var dot=document.createElementNS(svgNS,"circle");dot.setAttribute("class","phase-turn");dot.setAttribute("r","4.5");dot.setAttribute("cx",eyeX(point.t));dot.setAttribute("cy",eyeY(point.y));turningGroup.appendChild(dot)});
+        document.getElementById("slide-turning").textContent=analysis.turningPoints.length;
+        document.getElementById("slide-patterns").textContent=analysis.summary.candidatePatterns;
+        function updateEye(){
+          var time=Math.min(eyeVideo.currentTime||0,6),index=Math.min(processed.length-1,Math.max(0,Math.round(time/6*(processed.length-1)))),frame=processed[index];
+          var x=eyeX(frame.t),y=eyeY(frame.y);
+          var playhead=document.getElementById("slide-eye-playhead"),dot=document.getElementById("slide-eye-dot");
+          playhead.setAttribute("x1",x);playhead.setAttribute("x2",x);dot.setAttribute("cx",x);dot.setAttribute("cy",y);
+        }
+        ["loadedmetadata","timeupdate","seeking","seeked"].forEach(function(event){bodyVideo.addEventListener(event,updateBody);eyeVideo.addEventListener(event,updateEye)});
+        updateBody();updateEye();
+      })();
+    </script>
+    <script>
+      (function(){
+        window.__timelines=window.__timelines||{};
+        var ids=["stereo-hook","capture-stack","body-pose","head-gaze","parallel-runtime","session-evidence","demo-boundary","next-step"];
+        var scenes=ids.map(function(id,i){return{id:id,start:i*6,duration:6};});
+        function setTime(t){scenes.forEach(function(s){var el=document.getElementById("scene-"+s.id);var active=t>=s.start&&t<s.start+s.duration;el.style.opacity=active?"1":"0";el.style.visibility=active?"visible":"hidden";el.style.pointerEvents=active?"auto":"none";});}
+        ids.forEach(function(id){var tl=gsap.timeline({paused:true});tl.to({}, {duration:6});window.__timelines[id]=tl;});
+        var root=gsap.timeline({paused:true});root.to({}, {duration:48});root.eventCallback("onUpdate",function(){setTime(root.time())});window.__timelines.root=root;window.__hfSetTime=setTime;setTime(0);
+        function post(){parent.postMessage({source:"hf-preview",type:"timeline",durationInFrames:1440,scenes:scenes},"*")}
+        if(document.readyState==="complete")setTimeout(post,300);else window.addEventListener("load",function(){setTimeout(post,300)});
+      })();
+    </script>
+  </body>
+</html>

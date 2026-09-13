@@ -32,10 +32,10 @@
 		A10200000000000000000007 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		A10200000000000000000008 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		A10200000000000000000009 /* swinunet_web.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = swinunet_web.onnx; sourceTree = "<group>"; };
-		A10200000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A10200000000000000000011 /* HomeNystagmusMonitoriOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomeNystagmusMonitoriOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1020000000000000000000A /* NystagmusSignalAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NystagmusSignalAnalysis.swift; sourceTree = "<group>"; };
 		A1020000000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A10200000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10200000000000000000011 /* HomeNystagmusMonitoriOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomeNystagmusMonitoriOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10200000000000000000001 /* ONNXRuntimeGazeEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONNXRuntimeGazeEstimator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -213,7 +213,7 @@
 /* Begin XCBuildConfiguration section */
 		A10A00000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			buildSettings = {
+				buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -274,7 +274,7 @@
 		};
 		A10A00000000000000000002 /* Release */ = {
 			isa = XCBuildConfiguration;
-			buildSettings = {
+				buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -329,11 +329,12 @@
 		};
 		A10A00000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			buildSettings = {
+				buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 949ZMC2D2T;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HomeNystagmusMonitoriOS/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -356,10 +357,11 @@
 		};
 		A10A00000000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
-			buildSettings = {
+				buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 949ZMC2D2T;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HomeNystagmusMonitoriOS/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

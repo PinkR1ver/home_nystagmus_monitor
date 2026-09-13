@@ -20,23 +20,6 @@ if ("IntersectionObserver" in window) {
   revealNodes.forEach((node) => node.classList.add("is-visible"));
 }
 
-const compareSlider = document.querySelector("[data-compare-slider]");
-const afterLayer = document.querySelector("[data-after-layer]");
-const divider = document.querySelector("[data-divider]");
-
-if (compareSlider && afterLayer && divider) {
-  const updateCompare = (value) => {
-    const clamped = Math.max(0, Math.min(100, Number(value)));
-    afterLayer.style.clipPath = `inset(0 0 0 ${clamped}%)`;
-    divider.style.left = `${clamped}%`;
-  };
-
-  updateCompare(compareSlider.value);
-  compareSlider.addEventListener("input", (event) => {
-    updateCompare(event.target.value);
-  });
-}
-
 const serverGuide = document.querySelector("#server-guide");
 const guideCards = document.querySelectorAll("[data-guide-card]");
 

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>立体康复评估 · HTML Slides</title>
+    <script src="https://unpkg.com/hyperframes@0.8.16/dist/hyperframes-player.global.js"></script>
+    <script src="https://unpkg.com/hyperframes@0.8.16/dist/hyperframes-slideshow.global.js"></script>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #101814; }
+    </style>
+  </head>
+  <body>
+    <hyperframes-slideshow tabindex="0" notes-storage-key="rehab-stereo-demo-v1" style="display:block;position:relative;width:100vw;height:100vh">
+      <hyperframes-player interactive style="position:absolute;inset:0" src="composition/index.html"></hyperframes-player>
+      <script type="application/hyperframes-slideshow+json">
+        {
+          "slides": [
+            {"sceneId":"stereo-hook","notes":"开场：重点不是多一个摄像头，而是多了可用于几何约束的第二视角。"},
+            {"sceneId":"capture-stack","notes":"说明 Wide 与 Ultra Wide 同步输出 RGB、深度与标定信息。"},
+            {"sceneId":"body-pose","notes":"左侧采用正面全身深蹲素材；右侧关键点、置信度和髋中心位置来自同一视频帧的 YOLO11n Pose 实测。","autoplay":true},
+            {"sceneId":"head-gaze","notes":"这页不再使用装饰曲线：右侧水平轨迹由左侧直接眼震特写逐帧测量虹膜中心得到，并随视频播放头移动。","autoplay":true},
+            {"sceneId":"parallel-runtime","notes":"三路模型采用最新帧优先；图中耗时是当前参考环境结果，不代表所有 iPhone。"},
+            {"sceneId":"session-evidence","notes":"一次会话保留信号、置信度与质量门，便于回放和后续复核。"},
+            {"sceneId":"demo-boundary","notes":"主动说明边界：这是工程 Demo，不是临床诊断或医疗器械性能结论。"},
+            {"sceneId":"next-step","notes":"收尾：明天 Demo 展示完整链路，下一阶段用真人场景做端到端验证。"}
+          ]
+        }
+      </script>
+    </hyperframes-slideshow>
+  </body>
+</html>
