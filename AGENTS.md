@@ -93,3 +93,6 @@ flowchart TD
 - Reuse same `recordId` and account-scoped sync semantics for doctor web/desktop client.
 - Keep archive workflow as metadata state transition, not destructive deletion.
 - Doctor-side should consume server records API as canonical analysis output.
+
+## Eye detection timing decision
+- User confirmed post-recording analysis: save the complete video first, then run eye-movement detection and generate the report. Real-time eye detection is outside the current first-version scope.
