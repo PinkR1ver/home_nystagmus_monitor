@@ -2,7 +2,7 @@
 
 - Created: 2026-09-14
 - Last updated: 2026-09-14
-- Status: Planned — Android priority and visual direction confirmed; implementation not started
+- Status: Completed — Android first integration and desktop verification; device acceptance pending
 - 用户决定：两个平台保留并行演进路线；当前 Android 优先，iPhone 后续再做、目前归档暂停。以运动实验室 Android App 现有 UI 为视觉方案，并加入眼动检测 section。
 
 ## 源码基线
@@ -10,7 +10,7 @@
 - 来源：`/Volumes/macOSexternal/Downloads/mobile-kinematics-app-source-20260913/mobile-kinematics-app-source-20260913`
 - 独立 Android v0.4.0（versionCode 7），applicationId `com.mobilekinematics.qishen`。
 - Kotlin/Compose、CameraX、MediaPipe Pose Heavy，minSdk 28 / targetSdk 36，arm64-v8a。
-- 已在来源目录初始化独立本地 Git；原包标签 `archive/source-v0.4.0-20260913`。当前不迁移目录、不合并业务代码。
+- 已在来源目录初始化独立本地 Git；原包标签 `archive/source-v0.4.0-20260913`。新 App 仍在原目录，眼动能力已迁入该工程。
 
 ## 已了解的架构
 
@@ -41,12 +41,19 @@
 
 - 眼动 section 首版：采集/导入与报告指标的具体边界；录制结束后分析已确认。
 - 头姿/视线融合是否后续另立任务？当前仅确认加入眼动检测。
-- 先保持离线工作流，还是首版接入账户/服务器？
+- 首版保持离线；账户/服务器同步与头姿融合属于后续范围。
 
 ## 验证与下一步
 
 - 已核对模型与两份配置 SHA-256，均与 SHARE_MANIFEST.md 相符。
 - 已阅读 README、交接、验证文档及相机/分析/会话关键源码。
-- 交付方记载 39 tests / 0 failures、lint 0 errors；本轮未在本机重跑，不视为本机通过。
-- 讨论确定范围后：本机 testDebugUnitTest + assembleDebug + lintDebug，再做目标手机三模式、前后摄像头与异常中断验证。
+- 本机已通过原 39 项与新增 10 项测试（49/49）；APK 构建成功，Lint 0 errors / 23 warnings。
+- 本机 testDebugUnitTest + assembleDebug + lintDebug 已完成；目标手机的摄像头、视频播放、完整推理性能和中断恢复待设备验收。
 - 不因建立主线而把尚未实现的整合标记完成。
+
+## Android 实施进展
+
+- 已在新 App 接通独立眼动 section、采集/导入、手动单眼选区、录后本地分析、历史报告和 ZIP 导出。
+- 复用当前仓库 Android `swinunet_web.onnx`；同 iPhone 文件 SHA-256 一致，无需重新下载模型。
+- 采用本地离线推理，不增加服务器同步。详细实现与验证状态以新项目 `docs/EYE_DETECTION.md` 和 `.agents/spec/eye-movement-section.md` 为准。
+- 本机模型 CPU 单帧 smoke、Android 构建、49 项回归、APK 签名及内置模型校验均通过。没有连接 Android 真机，设备验收未执行。
