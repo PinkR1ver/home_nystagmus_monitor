@@ -97,6 +97,10 @@ def health():
         c.execute('SELECT 1')
     return {'status':'ok','service':'motion-lab-ingest','schemaVersion':1}
 
+@app.get('/v1/me')
+def me(account=Depends(auth)):
+    return {'accountId':str(account)}
+
 @app.get('/v1/schema')
 def schema(account=Depends(auth)):
     return app.openapi()

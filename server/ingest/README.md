@@ -34,7 +34,7 @@ All `/v1` endpoints require `Authorization: Bearer <token>`. Account identity is
 
 Exact retries are safe; different content under an existing immutable key returns 409. Complete records are immutable. Changed reports after completion require a new record ID in v1. JSON body limit 8 MiB. Full-file retry supported; byte-range resume not implemented. No background inference, account self-registration or mobile sync UI is included in this service.
 
-`GET /health` is public; authenticated `GET /v1/schema` returns OpenAPI.
+`GET /health` is public; authenticated `GET /v1/me` returns the verified accountId, and `GET /v1/schema` returns OpenAPI.
 
 ## Upload an Android session folder
 
@@ -48,7 +48,7 @@ python3 server/ingest/upload_session.py /path/to/1790000000000-session-id \
 
 The uploader uses certificate verification; it never accepts plaintext HTTP. Retries require the same metadata arguments. For eye reports `unavailableReason` maps to unable_to_analyze.
 
-Current Android application still has no INTERNET permission or sync UI. Integrating the API into the app (network permission, per-device credentials, upload queue, progress/retry and incremental merge) is a separate follow-up, not claimed complete by backend deployment. Never embed the development token in a distributed APK.
+Android v0.5.0 now has optional authenticated HTTPS foreground sync, encrypted credentials, persistent account-scoped retry queues and incremental cloud history. Its source is in the separate mobile-kinematics checkout; see that repository’s `docs/CLOUD_SYNC.md`. No development token is embedded in the APK. Initial provisioning uses an operator-issued token/credential JSON. Background execution and resumable byte-range transfer are not implemented.
 
 ## Deployment and operations
 

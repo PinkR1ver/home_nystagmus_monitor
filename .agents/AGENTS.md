@@ -114,4 +114,4 @@ flowchart TD
 ## Cloud collection backend (2026-09-21)
 - A separate PostgreSQL-backed collection service is deployed; see `.agents/spec/motion-cloud-ingestion.md` and `server/ingest/README.md`.
 - Accepts original files and client-origin reports for eye/body/IMU via authenticated HTTPS; server inference is not part of this deployment.
-- Android sync UI/queue is the pending client integration step; do not claim the current offline App already uploads automatically.
+- Android v0.5.0 in the Motion Lab checkout now has optional foreground HTTPS synchronization and per-account queues. Sync is user-triggered, not automatic; see its docs/CLOUD_SYNC.md.

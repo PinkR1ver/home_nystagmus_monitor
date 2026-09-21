@@ -1,7 +1,7 @@
 # Motion Lab cloud ingestion
 
 - Created: 2026-09-21
-- Status: Completed — backend deployed and verified; Android sync UI remains follow-up
+- Status: Completed — backend deployed and verified; Android v0.5.0 client implemented separately
 - User authorized deploying a backend database and collection upload API to the supplied ECS server.
 - Keep existing services intact. Independent `/opt/motion-lab`, PostgreSQL, private file storage, account-scoped bearer credentials, HTTPS.
 - Scope: eye / standing / gait / STS / IMU records, versioned local reports and raw artifacts; no claim of server-side inference.
@@ -18,6 +18,7 @@
 - Development credential generated outside repository (locations in operations README); root password never persisted.
 - Only synthetic test data uploaded; no patient recordings used. One explicitly synthetic IMU record retained as deployment evidence.
 - Current storage: 40 GB root disk, approximately 31 GB free before deployment. Seven daily same-disk backups are not off-site disaster recovery. Add off-host backup/storage before substantial collection.
-- Android current App still offline: no INTERNET permission, sync UI or upload queue added in this backend task. Use `server/ingest/upload_session.py` with an exported Android session directory now; next feature is direct Android authenticated HTTPS synchronization.
+- Subsequent Android v0.5.0 implementation now provides optional direct authenticated HTTPS sync, encrypted tokens, persistent per-account upload snapshots, retry/progress and incremental cloud history. See Android checkout `docs/CLOUD_SYNC.md` and `.agents/spec/android-cloud-sync.md`.
 - No cloud inference was deployed; `complete` is upload state. Existing local eye/body reports remain client-origin.
+- Added authenticated `/v1/me` for Android identity verification; deployed and exercised from real Android emulator.
 - Authoritative schema, protocol and operations: `server/ingest/README.md`, `schema.sql`.
