@@ -110,3 +110,8 @@ flowchart TD
 
 ## Eye detection timing decision
 - User confirmed post-recording analysis: save the complete video first, then run eye-movement detection and generate the report. Real-time eye detection is outside the current first-version scope.
+
+## Cloud collection backend (2026-09-21)
+- A separate PostgreSQL-backed collection service is deployed; see `.agents/spec/motion-cloud-ingestion.md` and `server/ingest/README.md`.
+- Accepts original files and client-origin reports for eye/body/IMU via authenticated HTTPS; server inference is not part of this deployment.
+- Android sync UI/queue is the pending client integration step; do not claim the current offline App already uploads automatically.
