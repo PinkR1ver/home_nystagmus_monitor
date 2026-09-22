@@ -1,12 +1,12 @@
-> Full feature port is now in progress (2026-09-22). Manual fixed ROI, raw IMU capture, MediaPipe Heavy body/STS/standing/gait metrics and HTTPS cloud sync are implemented. Android-reference algorithm fixtures and synthetic live-server sync tests pass. Live body camera overlay, quality-gated eye analysis, report ZIP/CSV export and account-scoped cloud sync are implemented. Physical camera/IMU acceptance still requires an available iOS signing account and Developer build. See `.agents/spec/apple-motion-lab.md` for current state. Run CocoaPods install before opening the `.xcworkspace`.
+> Implementation checkpoint (2026-09-23); physical-device acceptance remains pending. Manual fixed ROI, raw IMU capture, MediaPipe Heavy body/STS/standing/gait metrics and HTTPS cloud sync are implemented. Android-reference algorithm fixtures and synthetic live-server sync tests pass. Live body camera overlay, quality-gated eye analysis, report ZIP/CSV export and account-scoped cloud sync are implemented. Physical camera/IMU acceptance still requires an available iOS signing account and Developer build. See `.agents/spec/apple-motion-lab.md` for current state. Run CocoaPods install before opening the `.xcworkspace`.
 
 # Apple Motion Lab · Android 同款设计版
 
 2026-09-22 起在 `codex/apple-motion-lab` 分支恢复开发，主入口已按 Android v0.5.0 重写。白底、红色强调、圆角卡片，以及「首页 / 记录 / 我的」导航保持一致。
 
 - 已实现：运动模式选择、录制/导入视频、本机持久记录、眼动入口、录制后 ONNX 分析、真实信号图、原始视频导出、受试者参数保存。
-- 已设计入口但未接入：身体姿态推理、IMU 采集、云端账户/上传队列。界面明确展示当前状态。
-- 眼动当前复用 Apple 自动 ROI，尚未移植 Android 手动单眼框选。相机需真机测试；模拟器可导入视频。
+- 已接入：MediaPipe Heavy 身体姿态与运动报告、Core Motion IMU 采集、Keychain 账户凭据、HTTPS 同步/重试队列和 ZIP/CSV 导出。
+- 眼动使用手动确认的固定单眼 ROI，完整视频录制后进行 ONNX 推理及质量筛选。模拟器运行验证已通过；相机和 IMU 真机验收仍等待开发签名。
 - 原始视频与报告数据存于 Documents/MotionLab；报告中的旧引擎预览图片 URL 仍是临时证据，主报告播放持久化原视频。
 - 实际模拟器截图：[首页](visual-check/iphone-home.png)、[眼动](visual-check/iphone-eye.png)、[记录](visual-check/iphone-history.png)、[我的](visual-check/iphone-profile.png)、[云端](visual-check/iphone-cloud.png)、[iPad](visual-check/ipad-home.png)。
 
