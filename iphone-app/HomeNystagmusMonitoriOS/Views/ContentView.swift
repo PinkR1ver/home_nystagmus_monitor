@@ -18,6 +18,8 @@ private struct MotionRecord: Identifiable, Codable {
     var title: String
     var videoName: String
     var source: CaptureSource
+    var imuSession: IMUSession?
+    var eyeRegion: EyeRegion?
     var result: AnalysisResult?
     var message: String
 }
@@ -52,6 +54,12 @@ private struct MotionRecord: Identifiable, Codable {
         }
         return record
     }
+    func addIMU(_ session: IMUSession) throws -> MotionRecord {
+        let record = MotionRecord(id: session.id, createdAt: session.startedAt, title: "前裤袋 IMU", videoName: session.fileName, source: .camera, imuSession: session, message: session.status == "completed" ? "采集已完成" : "采集已中断，原始数据已保留")
+        records.insert(record, at: 0)
+        try save()
+        return record
+    }
     func update(_ record: MotionRecord) throws {
         if let i = records.firstIndex(where: { $0.id == record.id }) { records[i] = record }
         try save()
@@ -60,6 +68,9 @@ private struct MotionRecord: Identifiable, Codable {
 
 struct ContentView: View {
     @StateObject private var library = MotionLibrary()
+    @StateObject private var imuCapture = IMUCapture()
+    @State private var imuOptions = IMUOptions()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var tab = "首页"
     @State private var page = ""
     @State private var mode = "坐站 STS"
@@ -72,6 +83,7 @@ struct ContentView: View {
     @State private var error: String?
     @State private var selected: MotionRecord?
     @State private var saved = false
+    @State private var roiRecord: MotionRecord?
     @State private var weight = UserDefaults.standard.string(forKey: "motion.weight") ?? ""
     @State private var height = UserDefaults.standard.string(forKey: "motion.height") ?? ""
     @State private var sex = UserDefaults.standard.string(forKey: "motion.sex") ?? "男性参数"
@@ -109,8 +121,20 @@ struct ContentView: View {
         .foregroundStyle(MotionStyle.ink)
         .tint(MotionStyle.red)
         .preferredColorScheme(.light)
+        .onChange(of: scenePhase) { _, phase in if phase != .active { imuCapture.stop(reason: "app_inactive") } }
         .onChange(of: weight) { saved = false }
         .onChange(of: height) { saved = false }
+        .sheet(item: $roiRecord) { record in
+            EyeRegionView(videoURL: library.directory.appendingPathComponent(record.videoName), initial: record.eyeRegion ?? EyeRegion()) { region in
+                var updated = record
+                updated.eyeRegion = region
+                do {
+                    try library.update(updated)
+                    selected = updated
+                    analyze(updated, source: updated.source)
+                } catch { self.error = "选区保存失败：\(error.localizedDescription)" }
+            }
+        }
         .sheet(isPresented: $camera) {
             FixedLensCameraRecorder { url in
                 camera = false
@@ -167,7 +191,7 @@ struct ContentView: View {
         }.buttonStyle(.plain)
     }
     private func back(_ title: String = "返回首页") -> some View {
-        Button { page = ""; selected = nil } label: {
+        Button { imuCapture.stop(reason: "navigation"); page = ""; selected = nil } label: {
             Label(title, systemImage: "arrow.left").font(.system(size: 14))
         }.buttonStyle(.plain).frame(minHeight: 44)
     }
@@ -228,7 +252,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 14) {
                 Text("拍摄准备").font(.system(size: 18, weight: .bold))
                 Text("固定手机和头部，让同一只眼睛清晰可见。保持照明稳定，避免反光和遮挡。")
-                Text("建议录制 3–115 秒。保存完整视频后，在本机识别眼部区域并分析。导入视频最长 120 秒。")
+                Text("建议录制 3–115 秒。保存完整视频后，先框选单眼区域，再在本机分析。导入视频最长 120 秒。")
                     .foregroundStyle(MotionStyle.muted)
             }.font(.system(size: 14)).lineSpacing(5).padding(20)
                 .background(MotionStyle.paper, in: RoundedRectangle(cornerRadius: 16))
@@ -257,7 +281,7 @@ struct ContentView: View {
     private func recordRow(_ record: MotionRecord) -> some View {
         Button { selected = record; tab = "记录" } label: {
             HStack(spacing: 14) {
-                Image(systemName: record.title == "眼动检测" ? "eye" : "figure.walk")
+                Image(systemName: record.imuSession != nil ? "waveform.path" : record.title == "眼动检测" ? "eye" : "figure.walk")
                     .font(.title2).foregroundStyle(MotionStyle.red).frame(width: 48, height: 48)
                     .background(MotionStyle.pale, in: RoundedRectangle(cornerRadius: 14))
                 VStack(alignment: .leading, spacing: 6) {
@@ -297,7 +321,7 @@ struct ContentView: View {
             }
             Divider()
             Text("关于运动实验室").font(.headline)
-            Text("Apple 设计版 · 0.1.0\n沿用 Android 的运动、眼动与记录流程。\n身体姿态模型、IMU 及云端同步正在移植。")
+            Text("Apple 设计版 · 0.1.0\n沿用 Android 的运动、眼动与记录流程。\n已支持眼动与 IMU；身体姿态和云端同步正在移植。")
                 .font(.system(size: 13)).foregroundStyle(MotionStyle.muted).lineSpacing(6)
         }
     }
@@ -328,18 +352,59 @@ struct ContentView: View {
         Group {
             back()
             heading("前裤袋 IMU 采集", "记录身体运动的原始信号")
-            VStack(alignment: .leading, spacing: 14) {
-                Text("采集准备").font(.headline)
-                Text("将手机放入前裤袋，保持方向固定，在平稳环境中完成动作。")
-                Text("Apple 传感器采集模块正在移植，本版尚未开始记录加速度与角速度。")
-                    .foregroundStyle(MotionStyle.muted)
-            }.padding(20).background(MotionStyle.paper, in: RoundedRectangle(cornerRadius: 16))
+            Text("将手机放入前裤袋，保持方向固定。采集期间请保持应用在前台；离开应用会停止并保存已有数据。")
+                .font(.subheadline).foregroundStyle(MotionStyle.muted)
+            VStack(spacing: 16) {
+                TextField("受试者编号（可选）", text: $imuOptions.participant).textFieldStyle(.roundedBorder)
+                Picker("放置位置", selection: $imuOptions.pocket) {
+                    Text("右前裤袋").tag("right_front"); Text("左前裤袋").tag("left_front")
+                }.pickerStyle(.segmented)
+                Picker("手机顶部", selection: $imuOptions.phoneTop) { Text("向上").tag("up"); Text("向下").tag("down") }.pickerStyle(.segmented)
+                Picker("屏幕方向", selection: $imuOptions.screenFacing) { Text("朝向身体").tag("body"); Text("朝向外侧").tag("outward") }.pickerStyle(.segmented)
+                Picker("自动停止", selection: $imuOptions.limitMinutes) {
+                    ForEach([1,5,10,30], id: \.self) { Text("\($0) 分钟").tag($0) }
+                }
+            }.disabled(imuCapture.active)
+            HStack {
+                metric("已采集", "\(Int(imuCapture.duration)) 秒")
+                metric("原始样本", "\(imuCapture.sampleCount)")
+            }
+            if let message = imuCapture.error { Text(message).foregroundStyle(.red).font(.subheadline) }
+            if imuCapture.active {
+                action("添加事件标记", outlined: true) { imuCapture.marker() }
+                action("停止并保存") { imuCapture.stop() }
+            } else {
+                action("开始 IMU 采集") {
+                    imuCapture.start(directory: library.directory, options: imuOptions) { session in
+                        do {
+                            selected = try library.addIMU(session)
+                            page = ""; tab = "记录"
+                        } catch { self.error = "保存记录失败：\(error.localizedDescription)" }
+                    }
+                }
+            }
+            Text("目标 100 Hz；实际频率取决于设备。加速度包含重力，单位 m/s²；角速度单位 rad/s。原始数据保留设备坐标系。")
+                .font(.caption).foregroundStyle(MotionStyle.muted)
         }
     }
     private func report(_ record: MotionRecord) -> some View {
         Group {
             back("返回记录")
             heading(record.title + "报告", record.createdAt.formatted(date: .abbreviated, time: .shortened))
+            if let imu = record.imuSession {
+                HStack { metric("时长", "\(Int(imu.durationS)) 秒"); metric("状态", imu.status == "completed" ? "已完成" : "已中断") }
+                ForEach(["accelerometer", "gyroscope"], id: \.self) { sensor in
+                    if let stats = imu.summaries[sensor] {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(sensor == "accelerometer" ? "加速度计" : "陀螺仪").font(.headline)
+                            Text("\(stats.count) 个样本 · 最大间隔 \(Int(stats.maxGapMs)) ms")
+                            Text("超过 100 ms 的间隔：\(stats.gapsOver100Ms)；时间异常：\(stats.nonIncreasing)").font(.caption)
+                        }.padding(18).frame(maxWidth: .infinity, alignment: .leading).background(MotionStyle.paper, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                }
+                ShareLink("导出采集信息", item: library.directory.appendingPathComponent(imu.metadataName))
+                ShareLink("导出事件标记", item: library.directory.appendingPathComponent(imu.markersName))
+            } else {
             VideoPlayer(player: AVPlayer(url: library.directory.appendingPathComponent(record.videoName)))
                 .frame(height: 220).clipShape(RoundedRectangle(cornerRadius: 16))
             if let result = record.result {
@@ -357,14 +422,15 @@ struct ContentView: View {
             } else {
                 Text(record.message).foregroundStyle(MotionStyle.muted)
                 if record.title == "眼动检测" {
-                    action("在本机分析") { analyze(record, source: record.source) }
+                    action("选择单眼区域并分析") { roiRecord = record }
                 } else {
                     Text("身体姿态模型尚未移植。原始视频已保存，当前不生成运动指标。")
                         .font(.subheadline).foregroundStyle(MotionStyle.muted)
                 }
             }
+            }
             ShareLink(item: library.directory.appendingPathComponent(record.videoName)) {
-                Label("导出原始视频", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity).padding(16)
+                Label(record.imuSession == nil ? "导出原始视频" : "导出原始 IMU CSV", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity).padding(16)
             }
         }
     }
@@ -425,7 +491,7 @@ struct ContentView: View {
                 let result = try await Task.detached(priority: .userInitiated) {
                     let duration = try await AVURLAsset(url: url).load(.duration).seconds
                     guard duration.isFinite, duration >= 3, duration <= 120 else { throw MotionVideoError.duration }
-                    return try await PrototypeNystagmusAnalysisEngine().analyze(videoURL: url, source: source)
+                    return try await PrototypeNystagmusAnalysisEngine(fixedRegion: record.eyeRegion).analyze(videoURL: url, source: source)
                 }.value
                 updated.result = result
                 updated.message = "分析已完成"

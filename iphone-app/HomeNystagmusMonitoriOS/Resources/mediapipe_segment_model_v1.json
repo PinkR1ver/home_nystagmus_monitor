@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "model_id": "mediapipe_kinect14_full_inertia_v1",
+  "pose_backend": "mediapipe",
+  "segment_count": 14,
+  "description": "Kinect-derived 14-segment approximation; trunk includes pelvis. Not a validated anatomical or clinical model.",
+  "units": {"position": "m", "mass": "kg", "inertia": "kg*m^2", "inertia_per_body_mass": "m^2"},
+  "local_axes": "Non-foot: z longitudinal/proximally directed, x projected subject-right, y=z cross x. Foot: y ankle-to-foot-index, x projected subject-right, z=x cross y.",
+  "source_files": [
+    "E:/康复中心/数据分析/algorithms/model_newton_euler/8_model algorithm/Segments_Velocity_Acceleration.m",
+    "E:/康复中心/数据分析/algorithms/model_newton_euler/8_model algorithm/Segments_Moment.m",
+    "E:/康复中心/数据分析/algorithms/model_newton_euler/3_Preprocess/Preprocess_Kinect/Human_Model_Constrain/Get_Segments_Length.m",
+    "D:/Lab/ViconTest/codesViconTest/codesSTS2Test/algorithm_STS2/algorithm_XcoM/CalRotaryInertia.m"
+  ],
+  "parameter_policy": "Mass fractions and CoM fractions are copied from the user's Kinect 14-segment implementation, not relabeled as an unmodified de Leva table. Restore the longitudinal gyration coefficients present but commented out in Segments_Moment.m to form full 3-D tensors. No legacy scalar trace-plus-distance sum is used.",
+  "length_policy": "Pooled bilateral median over the explicit calibration window; fixed within a trial. Kinect default inertia lengths are Hand=0.08 m and Foot=0.15 m; landmark_median mode or explicit per-type lengths may override them. CoM uses framewise endpoint interpolation, not a length-constrained skeleton.",
+  "fixed_inertia_lengths_m": {"Hand": 0.08, "Foot": 0.15},
+  "landmark_proxies": {
+    "head_center": "mean(left_ear,right_ear); substitute for Kinect HEAD, not measured anatomical head CoM",
+    "neck": "mean(left_shoulder,right_shoulder); shoulder-center proxy, not a detected neck joint",
+    "hand_endpoint": "mean(same-side index,pinky); substitute for Kinect HAND, not anatomically identical",
+    "foot_endpoint": "same-side foot_index; substitute for Kinect FOOT, not a heel-to-toe segment",
+    "pelvis": "mean(left_hip,right_hip); no separate mass because pelvis is included in Trunk"
+  },
+  "profiles": {
+    "M": {
+      "HeadNeck": {"mass_fraction": 0.0694, "com_fraction": 1.0, "gyration_xyz": [0.376, 0.362, 0.312]},
+      "Trunk": {"mass_fraction": 0.4346, "com_fraction": 0.4486, "gyration_xyz": [0.347, 0.372, 0.191]},
+      "Upperarm": {"mass_fraction": 0.0271, "com_fraction": 0.5772, "gyration_xyz": [0.269, 0.285, 0.158]},
+      "Forearm": {"mass_fraction": 0.0162, "com_fraction": 0.4574, "gyration_xyz": [0.265, 0.276, 0.121]},
+      "Hand": {"mass_fraction": 0.0061, "com_fraction": 0.79, "gyration_xyz": [0.513, 0.628, 0.401]},
+      "Thigh": {"mass_fraction": 0.1416, "com_fraction": 0.4095, "gyration_xyz": [0.329, 0.329, 0.149]},
+      "Shank": {"mass_fraction": 0.0433, "com_fraction": 0.4459, "gyration_xyz": [0.249, 0.255, 0.103]},
+      "Foot": {"mass_fraction": 0.0137, "com_fraction": 0.4415, "gyration_xyz": [0.245, 0.124, 0.257]}
+    },
+    "F": {
+      "HeadNeck": {"mass_fraction": 0.0669, "com_fraction": 1.0, "gyration_xyz": [0.359, 0.330, 0.318]},
+      "Trunk": {"mass_fraction": 0.4257, "com_fraction": 0.4151, "gyration_xyz": [0.339, 0.357, 0.171]},
+      "Upperarm": {"mass_fraction": 0.0255, "com_fraction": 0.5754, "gyration_xyz": [0.260, 0.278, 0.148]},
+      "Forearm": {"mass_fraction": 0.0138, "com_fraction": 0.4559, "gyration_xyz": [0.257, 0.261, 0.094]},
+      "Hand": {"mass_fraction": 0.0056, "com_fraction": 0.7474, "gyration_xyz": [0.454, 0.531, 0.335]},
+      "Thigh": {"mass_fraction": 0.1478, "com_fraction": 0.3612, "gyration_xyz": [0.364, 0.369, 0.162]},
+      "Shank": {"mass_fraction": 0.0481, "com_fraction": 0.4416, "gyration_xyz": [0.267, 0.271, 0.093]},
+      "Foot": {"mass_fraction": 0.0129, "com_fraction": 0.4014, "gyration_xyz": [0.279, 0.139, 0.299]}
+    }
+  }
+}
