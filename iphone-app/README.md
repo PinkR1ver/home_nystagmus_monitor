@@ -1,4 +1,4 @@
-> Full feature port is now in progress (2026-09-22). Manual fixed ROI and raw IMU acquisition are implemented; MediaPipe Heavy dependencies/model and video landmark extraction compile. Body metrics, cloud synchronization and full runtime acceptance remain pending. See `.agents/spec/apple-motion-lab.md` for current state. Run CocoaPods install before opening the `.xcworkspace`.
+> Full feature port is now in progress (2026-09-22). Manual fixed ROI, raw IMU capture, MediaPipe Heavy body/STS/standing/gait metrics and HTTPS cloud sync are implemented. Android-reference algorithm fixtures and synthetic live-server sync tests pass. Live body camera overlay, complete export/parity checks and physical acceptance remain pending. See `.agents/spec/apple-motion-lab.md` for current state. Run CocoaPods install before opening the `.xcworkspace`.
 
 # Apple Motion Lab · Android 同款设计版
 
@@ -15,7 +15,7 @@
 DEVELOPER_DIR=/Volumes/macOSexternal/Applications/Xcode.app/Contents/Developer xcodebuild \
   -workspace iphone-app/HomeNystagmusMonitoriOS.xcworkspace \
   -scheme HomeNystagmusMonitoriOS -sdk iphonesimulator \
-  -derivedDataPath /tmp/motion-apple-build CODE_SIGNING_ALLOWED=NO build
+  -derivedDataPath /tmp/motion-apple-build CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- build
 ```
 
 报告持久化验证：

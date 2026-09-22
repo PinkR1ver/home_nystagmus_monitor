@@ -30,6 +30,14 @@
 		3F369E52CE7A8CED581020EB /* pose_landmarker_heavy.task in Resources */ = {isa = PBXBuildFile; fileRef = 9AFBE9DA29EBA732677D64D0; };
 		61012C491D98321753C3C0C8 /* mediapipe_segment_model_v1.json in Resources */ = {isa = PBXBuildFile; fileRef = FEABC2DE06B731A7FD74646A; };
 		F108BCBD06DFEC24149A27BE /* sts_detection_v1.json in Resources */ = {isa = PBXBuildFile; fileRef = 7140B68DBAE09751849B3B80; };
+		693DB18B2D89FA7C3E2A8F85 /* BodySegmentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2649FD364A27F213B5CB4AB4; };
+		709163CC8222C1AB7DC7242B /* BodyStsAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E01AE1EB0F05C390038D316; };
+		2D555E42DCED6571701CFD12 /* BodyVideoAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 301A15BDDE905BF3101424FA; };
+		4B22D95F198DC400404AF98D /* MotionCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62660E407F4EFB1B483EC150; };
+		475DE105A1892AEDDD28B30E /* CloudRuntimeSmoke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA6EECDA5319AE61954970D; };
+		2C1BAD2A4C91B81746863B07 /* BodyMotionMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C9B57E779803E9D76D4085C; };
+		71E2C244ECAF1D4D2A58ECE1 /* BodyGaitMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6A20A5891DB0DC2AB67740; };
+		20E0719A827905FC74648C99 /* BodyMotionReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF34682C6EE0C26A639CE8C; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +67,14 @@
 		9AFBE9DA29EBA732677D64D0 /* pose_landmarker_heavy.task */ = {isa = PBXFileReference; lastKnownFileType = file; path = pose_landmarker_heavy.task; sourceTree = "<group>"; };
 		FEABC2DE06B731A7FD74646A /* mediapipe_segment_model_v1.json */ = {isa = PBXFileReference; lastKnownFileType = file; path = mediapipe_segment_model_v1.json; sourceTree = "<group>"; };
 		7140B68DBAE09751849B3B80 /* sts_detection_v1.json */ = {isa = PBXFileReference; lastKnownFileType = file; path = sts_detection_v1.json; sourceTree = "<group>"; };
+		2649FD364A27F213B5CB4AB4 /* BodySegmentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodySegmentModel.swift; sourceTree = "<group>"; };
+		2E01AE1EB0F05C390038D316 /* BodyStsAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyStsAnalyzer.swift; sourceTree = "<group>"; };
+		301A15BDDE905BF3101424FA /* BodyVideoAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyVideoAnalysis.swift; sourceTree = "<group>"; };
+		62660E407F4EFB1B483EC150 /* MotionCloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionCloud.swift; sourceTree = "<group>"; };
+		1AA6EECDA5319AE61954970D /* CloudRuntimeSmoke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRuntimeSmoke.swift; sourceTree = "<group>"; };
+		0C9B57E779803E9D76D4085C /* BodyMotionMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMotionMetrics.swift; sourceTree = "<group>"; };
+		6D6A20A5891DB0DC2AB67740 /* BodyGaitMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyGaitMetrics.swift; sourceTree = "<group>"; };
+		5BF34682C6EE0C26A639CE8C /* BodyMotionReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMotionReportView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +144,13 @@
 		A10400000000000000000004 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				6D6A20A5891DB0DC2AB67740 /* BodyGaitMetrics.swift */,
+				0C9B57E779803E9D76D4085C /* BodyMotionMetrics.swift */,
+				1AA6EECDA5319AE61954970D /* CloudRuntimeSmoke.swift */,
+				62660E407F4EFB1B483EC150 /* MotionCloud.swift */,
+				301A15BDDE905BF3101424FA /* BodyVideoAnalysis.swift */,
+				2E01AE1EB0F05C390038D316 /* BodyStsAnalyzer.swift */,
+				2649FD364A27F213B5CB4AB4 /* BodySegmentModel.swift */,
 				9C827195F264DB83AC97BFAC /* BodyPoseDetector.swift */,
 				6681628A3D0B727F1AD55D37 /* MotionIMU.swift */,
 				A10200000000000000000003 /* VideoAnalysisService.swift */,
@@ -141,6 +164,7 @@
 		A10400000000000000000005 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				5BF34682C6EE0C26A639CE8C /* BodyMotionReportView.swift */,
 				19F3C72918B400C94556199C /* EyeRegionView.swift */,
 				A10200000000000000000005 /* ContentView.swift */,
 				A10200000000000000000006 /* CaptureStartView.swift */,
@@ -276,6 +300,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20E0719A827905FC74648C99 /* BodyMotionReportView.swift in Sources */,
+				71E2C244ECAF1D4D2A58ECE1 /* BodyGaitMetrics.swift in Sources */,
+				2C1BAD2A4C91B81746863B07 /* BodyMotionMetrics.swift in Sources */,
+				475DE105A1892AEDDD28B30E /* CloudRuntimeSmoke.swift in Sources */,
+				4B22D95F198DC400404AF98D /* MotionCloud.swift in Sources */,
+				2D555E42DCED6571701CFD12 /* BodyVideoAnalysis.swift in Sources */,
+				709163CC8222C1AB7DC7242B /* BodyStsAnalyzer.swift in Sources */,
+				693DB18B2D89FA7C3E2A8F85 /* BodySegmentModel.swift in Sources */,
 				0849CE20287D1CB579A35A8A /* BodyPoseDetector.swift in Sources */,
 				B518E8E975805E4A61DB6AD5 /* BodyPose.swift in Sources */,
 				7332A73772128B4F44D3FAD7 /* IMUData.swift in Sources */,

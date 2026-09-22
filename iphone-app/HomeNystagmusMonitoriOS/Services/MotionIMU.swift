@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor final class IMUCapture: ObservableObject {
     @Published var active = false
+    @Published var finishing = false
     @Published var duration = 0.0
     @Published var sampleCount = 0
     @Published var error: String?
@@ -18,7 +19,7 @@ import SwiftUI
     var available: Bool { motion.isAccelerometerAvailable && motion.isGyroAvailable }
 
     func start(directory: URL, options: IMUOptions, completion: @escaping (IMUSession) -> Void) {
-        guard !active else { return }
+        guard !active, !finishing else { return }
         guard available else { error = "此设备没有可用的加速度计或陀螺仪，请使用真机采集。"; return }
         do {
             let session = IMUSession(id: UUID(), startedAt: Date(), startElapsedNs: Self.nowNs, options: options)
@@ -75,14 +76,15 @@ import SwiftUI
     }
     func stop(reason: String = "user") {
         guard active, let writer else { return }
-        active = false; timer?.invalidate(); timer = nil
+        active = false; finishing = true; timer?.invalidate(); timer = nil
+        let completed = completion
         motion.stopAccelerometerUpdates(); motion.stopGyroUpdates()
         let now = Self.nowNs
         queue.addOperation { [weak self] in
             do {
                 let session = try writer.finish(nowNs: now, reason: reason)
-                Task { @MainActor in self?.completion?(session); self?.writer = nil }
-            } catch { let message = error.localizedDescription; Task { @MainActor in self?.error = "保存失败：\(message)" } }
+                Task { @MainActor in self?.writer = nil; self?.finishing = false; completed?(session) }
+            } catch { let message = error.localizedDescription; Task { @MainActor in self?.finishing = false; self?.writer = nil; self?.error = "保存失败：\(message)" } }
         }
     }
 }

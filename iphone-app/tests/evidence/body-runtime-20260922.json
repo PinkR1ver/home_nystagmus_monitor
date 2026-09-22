@@ -1,0 +1,11 @@
+{
+  "input": "mixkit-squats-752.mp4",
+  "durationS": 6,
+  "frames": 120,
+  "validCoverage": 0.9666666666666667,
+  "events": 1,
+  "metrics": 305,
+  "series": 51,
+  "model": "MediaPipe Pose Heavy / CPU",
+  "mode": "sts"
+}

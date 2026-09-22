@@ -18,6 +18,13 @@ private struct MotionRecord: Identifiable, Codable {
     var title: String
     var videoName: String
     var source: CaptureSource
+    var cloudRecordId: String?
+    var cloudRecord: CloudJSON?
+    var cloudOnly: Bool?
+    var cloudArchived: Bool?
+    var cloudOwner: String?
+    var bodyReport: BodyAnalysisReport?
+    var subject: BodySubject?
     var imuSession: IMUSession?
     var eyeRegion: EyeRegion?
     var result: AnalysisResult?
@@ -54,6 +61,30 @@ private struct MotionRecord: Identifiable, Codable {
         }
         return record
     }
+    func mergeCloud(_ remote:[String:CloudJSON],scope:String) throws {
+        var merged=records
+        for i in merged.indices where merged[i].cloudOwner == scope && merged[i].cloudRecordId != nil {
+            if remote[merged[i].cloudRecordId!] == nil {merged[i].cloudArchived=true}
+        }
+        for(id,server) in remote.sorted(by:{($0.value["revision"].number ?? 0)<($1.value["revision"].number ?? 0)}) {
+            let localId=server["metadata"]["context"]["localRecordId"].string.flatMap(UUID.init(uuidString:))
+            let position=merged.firstIndex {r in r.cloudOwner == scope && (r.cloudRecordId == id || (localId != nil && r.id == localId))}
+            let type=server["task_type"].string ?? ""
+            let title=["eye":"眼动检测","standing":"静态站立","gait":"步态","sts":"坐站 STS","imu":"前裤袋 IMU"][type] ?? "云端记录"
+            var record=position.map{merged[$0]} ?? MotionRecord(id:UUID(),createdAt:ISO8601DateFormatter().date(from:server["metadata"]["startedAt"].string ?? "") ?? Date(),title:title,videoName:"",source:.importedVideo,cloudOnly:true,cloudOwner:scope,message:"云端记录，原始文件尚未下载")
+            record.cloudRecordId=id;record.cloudRecord=server;record.cloudArchived=false
+            let reports=server["reports"].array
+            if let report=reports.last(where:{$0["origin"].string == "server"}) ?? reports.last {
+                let payload=try report["payload"].data()
+                if report["origin"].string == "server" {record.bodyReport=nil;record.result=nil}
+                if let body=try? JSONDecoder().decode(BodyAnalysisReport.self,from:payload) {record.bodyReport=body;record.result=nil;try payload.write(to:directory.appendingPathComponent(record.id.uuidString+"-body-report.json"),options:.atomic)}
+                else if let eye=try? JSONDecoder().decode(AnalysisResult.self,from:payload) {record.result=eye;record.bodyReport=nil}
+            }
+            if let position {merged[position]=record}else{merged.append(record)}
+        }
+        let previous=records;records=merged.sorted{$0.createdAt>$1.createdAt}
+        do{try save()}catch{records=previous;throw error}
+    }
     func addIMU(_ session: IMUSession) throws -> MotionRecord {
         let record = MotionRecord(id: session.id, createdAt: session.startedAt, title: "前裤袋 IMU", videoName: session.fileName, source: .camera, imuSession: session, message: session.status == "completed" ? "采集已完成" : "采集已中断，原始数据已保留")
         records.insert(record, at: 0)
@@ -69,6 +100,16 @@ private struct MotionRecord: Identifiable, Codable {
 struct ContentView: View {
     @StateObject private var library = MotionLibrary()
     @StateObject private var imuCapture = IMUCapture()
+    @StateObject private var cloudSync = MotionCloud()
+    private var visibleRecords:[MotionRecord] {
+        library.records.filter {record in
+            if record.cloudOnly == true {return record.cloudOwner == cloudSync.scope && record.cloudArchived != true}
+            return true
+        }
+    }
+    @State private var cloudEndpoint = "https://39.107.192.82"
+    @State private var cloudSecret = ""
+    @State private var credentialImporter = false
     @State private var imuOptions = IMUOptions()
     @Environment(\.scenePhase) private var scenePhase
     @State private var tab = "首页"
@@ -80,6 +121,8 @@ struct ContentView: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var eyeCapture = false
     @State private var busy = false
+    @State private var analysisTitle = "正在分析"
+    @State private var smokeStarted = false
     @State private var error: String?
     @State private var selected: MotionRecord?
     @State private var saved = false
@@ -112,7 +155,7 @@ struct ContentView: View {
                 Color.black.opacity(0.25).ignoresSafeArea()
                 VStack(spacing: 18) {
                     ProgressView().tint(MotionStyle.red)
-                    Text("正在分析眼动").font(.headline)
+                    Text(analysisTitle).font(.headline)
                     Text("视频已保存，请保持应用在前台。")
                         .font(.subheadline).foregroundStyle(MotionStyle.muted)
                 }.padding(28).background(.white, in: RoundedRectangle(cornerRadius: 22))
@@ -121,7 +164,12 @@ struct ContentView: View {
         .foregroundStyle(MotionStyle.ink)
         .tint(MotionStyle.red)
         .preferredColorScheme(.light)
-        .onChange(of: scenePhase) { _, phase in if phase != .active { imuCapture.stop(reason: "app_inactive") } }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { imuCapture.stop(reason: "app_inactive"); cloudSync.pause() } }
+        .onChange(of: cloudSync.state.records) { _, records in
+            if let scope=cloudSync.scope {
+                do{try library.mergeCloud(records,scope:scope)}catch{self.error="云端记录合并失败：\(error.localizedDescription)"}
+            }
+        }
         .onChange(of: weight) { saved = false }
         .onChange(of: height) { saved = false }
         .sheet(item: $roiRecord) { record in
@@ -155,6 +203,15 @@ struct ContentView: View {
                 photoItem = nil
             }
         }
+        .fileImporter(isPresented: $credentialImporter, allowedContentTypes: [.json, .plainText]) { result in
+            do {
+                let url=try result.get();let access=url.startAccessingSecurityScopedResource()
+                defer {if access {url.stopAccessingSecurityScopedResource()}}
+                let size=try url.resourceValues(forKeys:[.fileSizeKey]).fileSize ?? 0
+                guard size <= 16384 else {throw MotionCloudFailure(status:0,message:"凭据文件过大")}
+                cloudSecret=try String(contentsOf:url,encoding:.utf8)
+            }catch{self.error=error.localizedDescription}
+        }
         .fileImporter(isPresented: $importer, allowedContentTypes: [.movie, .mpeg4Movie, .quickTimeMovie]) { result in
             switch result {
             case .success(let url): accept(url, source: .importedVideo)
@@ -166,7 +223,18 @@ struct ContentView: View {
         } message: { Text(error ?? "") }
         .onAppear {
             error = library.loadError
+            if let scope=cloudSync.scope {do{try library.mergeCloud(cloudSync.state.records,scope:scope)}catch{self.error=error.localizedDescription}}
             #if DEBUG
+            if ProcessInfo.processInfo.environment["MOTION_SMOKE_CLOUD"] == "1", !smokeStarted {
+                smokeStarted = true
+                Task {await CloudRuntimeSmoke.run()}
+            }
+            if ProcessInfo.processInfo.environment["MOTION_SMOKE_BODY"] == "1", !smokeStarted {
+                smokeStarted = true
+                let fixture = library.directory.appendingPathComponent("runtime-input.mp4")
+                accept(fixture, source: .importedVideo)
+                if let record = selected { analyzeBody(record) }
+            }
             if let route = ProcessInfo.processInfo.environment["MOTION_PREVIEW_PAGE"] {
                 if ["eye", "cloud", "imu"].contains(route) { page = route }
                 else if ["记录", "我的"].contains(route) { tab = route }
@@ -224,7 +292,7 @@ struct ContentView: View {
                 HStack { Image(systemName: "waveform.path"); Text("前裤袋 IMU 采集"); Spacer(); Image(systemName: "chevron.right") }
                     .font(.system(size: 15)).padding(.vertical, 12)
             }.buttonStyle(.plain)
-            if let recent = library.records.first {
+            if let recent = visibleRecords.first {
                 Text("最近记录").font(.headline)
                 recordRow(recent)
             }
@@ -266,7 +334,7 @@ struct ContentView: View {
         Group {
             heading("我的记录", "每一次练习，都值得认真记录。")
             action("云端同步与上传状态", outlined: true) { page = "cloud" }
-            if library.records.isEmpty {
+            if visibleRecords.isEmpty {
                 VStack(spacing: 14) {
                     Image(systemName: "doc.text").font(.system(size: 36)).foregroundStyle(MotionStyle.red)
                     Text("还没有采集记录").font(.headline)
@@ -275,7 +343,7 @@ struct ContentView: View {
                     Button("开始第一次采集") { tab = "首页" }.padding(8)
                 }.frame(maxWidth: .infinity).padding(.vertical, 60)
             }
-            ForEach(library.records) { recordRow($0) }
+            ForEach(visibleRecords) { recordRow($0) }
         }
     }
     private func recordRow(_ record: MotionRecord) -> some View {
@@ -321,7 +389,7 @@ struct ContentView: View {
             }
             Divider()
             Text("关于运动实验室").font(.headline)
-            Text("Apple 设计版 · 0.1.0\n沿用 Android 的运动、眼动与记录流程。\n已支持眼动与 IMU；身体姿态和云端同步正在移植。")
+            Text("Apple 设计版 · 0.1.0\n沿用 Android 的运动、眼动与记录流程。\n支持运动、眼动、IMU 与可选云端同步。")
                 .font(.system(size: 13)).foregroundStyle(MotionStyle.muted).lineSpacing(6)
         }
     }
@@ -336,17 +404,73 @@ struct ContentView: View {
         Group {
             back("返回")
             heading("云端同步", "安全保存视频、眼动与运动报告、IMU 原始数据。")
-            VStack(alignment: .leading, spacing: 12) {
-                Text("服务器地址").font(.subheadline).foregroundStyle(MotionStyle.muted)
-                Text("https://39.107.192.82").font(.system(.body, design: .monospaced)).textSelection(.enabled)
-            }.frame(maxWidth: .infinity, alignment: .leading).padding(20)
-                .background(MotionStyle.paper, in: RoundedRectangle(cornerRadius: 16))
-            Label("尚未连接", systemImage: "cloud").foregroundStyle(MotionStyle.muted)
-            Text("Apple 版的账户连接与上传队列正在接入。本版只在本机保存，暂不上传采集数据。")
-                .font(.subheadline).foregroundStyle(MotionStyle.muted)
-            Text("连接凭据、同步进度与逐条上传状态将与 Android 版保持一致。")
-                .font(.caption).foregroundStyle(MotionStyle.muted)
+            if let credential=cloudSync.credential {
+                Label("已连接",systemImage:"checkmark.shield.fill").foregroundStyle(MotionStyle.red)
+                Text(credential.endpoint).font(.subheadline)
+                Text("账户："+credential.accountId).font(.caption).textSelection(.enabled)
+                if cloudSync.busy {
+                    ProgressView()
+                    action("暂停同步",outlined:true) {cloudSync.pause()}
+                }else{
+                    action("上传本机记录并同步") {prepareCloudUploads()}
+                    action("仅拉取云端及重试队列",outlined:true) {cloudSync.sync()}
+                    Button("断开连接") {cloudSync.disconnect()}
+                }
+                Text("首次同步会将未绑定的本机记录绑定到此账户。上传原始视频与报告；修改后的报告以新版本记录上传。")
+                    .font(.caption).foregroundStyle(MotionStyle.muted)
+                ForEach(cloudSync.state.uploads) { upload in
+                    VStack(alignment:.leading,spacing:6) {
+                        Text(upload.localId.uuidString.prefix(8)).font(.subheadline.bold())
+                        Text(upload.message).font(.caption).foregroundStyle(MotionStyle.muted)
+                    }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(MotionStyle.paper,in:RoundedRectangle(cornerRadius:16))
+                }
+                Text("云端记录").font(.headline)
+                ForEach(cloudSync.state.records.keys.sorted(),id:\.self) { id in
+                    let record=cloudSync.state.records[id]
+                    VStack(alignment:.leading,spacing:8) {
+                        Text(record?["task_type"].string ?? "记录").font(.headline)
+                        Text(record?["metadata"]["startedAt"].string ?? "").font(.caption)
+                        Text(record?["status"].string ?? "").font(.caption).foregroundStyle(MotionStyle.muted)
+                        if let reports=record?["reports"].array,!reports.isEmpty {
+                            ForEach(Array(reports.enumerated()),id:\.offset) { _,report in
+                                Text((report["origin"].string ?? "")+" · "+(report["outcome"].string ?? "")).font(.caption)
+                                Text(report["payload"]["summary"].string ?? report["payload"]["message"].string ?? report["version"].string ?? "报告已保存").font(.subheadline)
+                            }
+                        }
+                    }.padding(18).frame(maxWidth:.infinity,alignment:.leading).background(MotionStyle.paper,in:RoundedRectangle(cornerRadius:16))
+                }
+            }else{
+                TextField("HTTPS 服务器地址",text:$cloudEndpoint).textInputAutocapitalization(.never).autocorrectionDisabled().padding(16).background(MotionStyle.paper,in:RoundedRectangle(cornerRadius:16))
+                SecureField("访问令牌或连接凭据 JSON",text:$cloudSecret).textInputAutocapitalization(.never).autocorrectionDisabled().padding(16).background(MotionStyle.paper,in:RoundedRectangle(cornerRadius:16))
+                action("导入连接凭据",outlined:true) {credentialImporter=true}
+                action("验证并连接") {Task {await cloudSync.connect(endpoint:cloudEndpoint,secret:cloudSecret);if cloudSync.credential != nil {cloudSecret=""}}}.disabled(cloudSync.busy)
+            }
+            if !cloudSync.message.isEmpty {Text(cloudSync.message).font(.subheadline).foregroundStyle(MotionStyle.muted)}
         }
+    }
+    private func prepareCloudUploads() {
+        guard let scope=cloudSync.scope,!busy,!imuCapture.active else {error="请先完成当前采集或分析";return}
+        do {
+            for original in library.records where original.cloudOnly != true && (original.cloudOwner == nil || original.cloudOwner == scope) {
+                var record=original
+                if record.cloudOwner == nil {record.cloudOwner=scope;try library.update(record)}
+                let kind=record.imuSession != nil ? "imu" : record.title == "眼动检测" ? "eye" : record.title == "步态" ? "gait" : record.title == "静态站立" ? "standing" : "sts"
+                let duration=record.imuSession?.durationS ?? record.bodyReport?.durationS ?? record.result?.durationSeconds ?? 0
+                let metadata=CloudJSON.object(["schemaVersion":.number(1),"taskType":.string(kind),"startedAt":.string(ISO8601DateFormatter().string(from:record.createdAt)),"durationSec":.number(duration),"device":.object(["platform":.string("ios")]),"context":.object(["localRecordId":.string(record.id.uuidString),"subject":try record.subject.map {try CloudJSON.wrap($0)} ?? .null]),"subjectId":.null])
+                var artifacts:[String:URL]=[kind == "imu" ? "imu.csv" : "video.mp4":library.directory.appendingPathComponent(record.videoName)]
+                let landmarks=library.directory.appendingPathComponent(record.id.uuidString+"-landmarks.json")
+                if FileManager.default.fileExists(atPath:landmarks.path) {artifacts["landmarks.json"]=landmarks}
+                var report:CloudJSON?
+                if let body=record.bodyReport {report = .object(["version":.string(body.version),"outcome":.string("analyzed"),"payload":try .wrap(body)])}
+                else if let eye=record.result {report = .object(["version":.string("apple-eye-v1"),"outcome":.string(eye.finding == .inconclusive ? "unable_to_analyze":"analyzed"),"payload":try .wrap(eye)])}
+                else if record.message.hasPrefix("无法分析") || record.message.hasPrefix("未能完成分析") {report = .object(["version":.string("apple-unavailable-v1"),"outcome":.string("unable_to_analyze"),"payload":.object(["message":.string(record.message)])])}
+                let contextURL=library.directory.appendingPathComponent(record.id.uuidString+"-upload-context.json")
+                let context:CloudJSON = .object(["subject":try record.subject.map{try .wrap($0)} ?? .null,"eyeRegion":try record.eyeRegion.map{try .wrap($0)} ?? .null,"imu":try record.imuSession.map{try .wrap($0)} ?? .null])
+                try context.data().write(to:contextURL,options:.atomic);artifacts["test_context.json"]=contextURL
+                try cloudSync.enqueue(localId:record.id,metadata:metadata,report:report,artifacts:artifacts)
+            }
+            cloudSync.sync()
+        }catch{self.error="准备同步失败：\(error.localizedDescription)"}
     }
     private var imu: some View {
         Group {
@@ -374,7 +498,7 @@ struct ContentView: View {
                 action("添加事件标记", outlined: true) { imuCapture.marker() }
                 action("停止并保存") { imuCapture.stop() }
             } else {
-                action("开始 IMU 采集") {
+                action(imuCapture.finishing ? "正在保存…":"开始 IMU 采集") {
                     imuCapture.start(directory: library.directory, options: imuOptions) { session in
                         do {
                             selected = try library.addIMU(session)
@@ -391,6 +515,27 @@ struct ContentView: View {
         Group {
             back("返回记录")
             heading(record.title + "报告", record.createdAt.formatted(date: .abbreviated, time: .shortened))
+            if let remote=record.cloudRecord {
+                Text(record.cloudArchived == true ? "云端已归档 · 本机数据保留" : "云端记录已同步").font(.caption).foregroundStyle(MotionStyle.muted)
+                let reports=remote["reports"].array
+                if let report=reports.last(where:{$0["origin"].string == "server"}) ?? reports.last {
+                    Text("\(report["origin"].string == "server" ? "服务器分析":"客户端分析") · \(report["version"].string ?? "")").font(.caption)
+                    Text(report["payload"]["summary"].string ?? report["payload"]["message"].string ?? "").font(.subheadline)
+                }
+            }
+            if record.videoName.isEmpty,let serverId=record.cloudRecordId,record.cloudArchived != true {
+                action("下载原始文件") {
+                    Task {
+                        let name=record.cloudRecord?["task_type"].string == "imu" ? "imu.csv":"video.mp4"
+                        let localName=record.id.uuidString+"-download-"+name
+                        do {
+                            guard record.cloudOwner == cloudSync.scope else {throw MotionCloudFailure(status:0,message:"请切换到此记录所属账户")}
+                            try await cloudSync.download(recordId:serverId,name:name,to:library.directory.appendingPathComponent(localName))
+                            var updated=record;updated.videoName=localName;try library.update(updated);selected=updated
+                        }catch{self.error=error.localizedDescription}
+                    }
+                }.disabled(cloudSync.busy)
+            }
             if let imu = record.imuSession {
                 HStack { metric("时长", "\(Int(imu.durationS)) 秒"); metric("状态", imu.status == "completed" ? "已完成" : "已中断") }
                 ForEach(["accelerometer", "gyroscope"], id: \.self) { sensor in
@@ -405,9 +550,37 @@ struct ContentView: View {
                 ShareLink("导出采集信息", item: library.directory.appendingPathComponent(imu.metadataName))
                 ShareLink("导出事件标记", item: library.directory.appendingPathComponent(imu.markersName))
             } else {
+            if !record.videoName.isEmpty && record.cloudRecord?["task_type"].string != "imu" {
             VideoPlayer(player: AVPlayer(url: library.directory.appendingPathComponent(record.videoName)))
                 .frame(height: 220).clipShape(RoundedRectangle(cornerRadius: 16))
-            if let result = record.result {
+            }
+            if let body = record.bodyReport {
+                HStack { metric("有效覆盖", "\(Int(body.validCoverage*100))%"); metric(body.mode == "sts" ? "完整起立":"视频时长", body.mode == "sts" ? "\(body.events.filter { $0.direction == "rise" && $0.status == "accepted" }.count)":"\(Int(body.durationS)) 秒") }
+                Text("身体质心与惯量").font(.headline)
+                Chart(Array(body.signals.enumerated()), id: \.offset) { index, sample in
+                    if let value=sample.inertia {
+                        LineMark(x:.value("时间（秒）",sample.timeS),y:.value("惯量 / 质量（m²）",value),series:.value("连续段",body.signals[..<index].lastIndex(where:{$0.inertia == nil}) ?? -1)).foregroundStyle(MotionStyle.red)
+                    }
+                }.frame(height:180)
+                ForEach(Array(body.events.enumerated()), id: \.offset) { _, event in
+                    VStack(alignment:.leading,spacing:6) {
+                        Text("\(event.direction == "rise" ? "起立" : event.direction == "sit" ? "坐下" : "未完成动作") · \(event.status == "accepted" ? "完整" : "需复核")").font(.headline)
+                        Text(String(format:"%.2f–%.2f 秒",event.startS,event.endS)).font(.subheadline)
+                        if !event.reason.isEmpty { Text(event.reason).font(.caption).foregroundStyle(MotionStyle.muted) }
+                    }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(MotionStyle.paper,in:RoundedRectangle(cornerRadius:16))
+                }
+                BodyMotionReportView(report:body)
+                ForEach(body.stats.keys.sorted(),id:\.self) { key in
+                    if let stats=body.stats[key], let mean=stats.mean {
+                        HStack { Text(key).font(.caption);Spacer();Text(String(format:"%.3f",mean)).monospacedDigit() }
+                    }
+                }
+                ForEach(body.warnings,id:\.self) { Text($0).font(.caption).foregroundStyle(MotionStyle.muted) }
+                ShareLink("导出身体分析 JSON",item:library.directory.appendingPathComponent(record.id.uuidString+"-body-report.json"))
+                if FileManager.default.fileExists(atPath:library.directory.appendingPathComponent(record.id.uuidString+"-landmarks.json").path) {
+                ShareLink("导出原始关键点 JSON",item:library.directory.appendingPathComponent(record.id.uuidString+"-landmarks.json"))
+                }
+            } else if let result = record.result {
                 Text(result.finding == .detected ? "观察到眼动信号" : result.finding == .notDetected ? "未见明确眼动信号" : "建议重新采集")
                     .font(.title3.bold()).foregroundStyle(MotionStyle.red)
                 Text(result.summary).font(.subheadline).foregroundStyle(MotionStyle.muted)
@@ -421,16 +594,17 @@ struct ContentView: View {
                     .font(.caption).foregroundStyle(MotionStyle.muted)
             } else {
                 Text(record.message).foregroundStyle(MotionStyle.muted)
-                if record.title == "眼动检测" {
+                if record.title == "眼动检测" && !record.videoName.isEmpty {
                     action("选择单眼区域并分析") { roiRecord = record }
-                } else {
-                    Text("身体姿态模型尚未移植。原始视频已保存，当前不生成运动指标。")
-                        .font(.subheadline).foregroundStyle(MotionStyle.muted)
+                } else if record.cloudRecord?["task_type"].string != "imu" && !record.videoName.isEmpty {
+                    action("分析身体运动") { analyzeBody(record) }
                 }
             }
             }
+            if !record.videoName.isEmpty {
             ShareLink(item: library.directory.appendingPathComponent(record.videoName)) {
-                Label(record.imuSession == nil ? "导出原始视频" : "导出原始 IMU CSV", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity).padding(16)
+                Label(record.imuSession == nil && record.cloudRecord?["task_type"].string != "imu" ? "导出原始视频" : "导出原始 IMU CSV", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity).padding(16)
+            }
             }
         }
     }
@@ -475,14 +649,36 @@ struct ContentView: View {
         let access = url.startAccessingSecurityScopedResource()
         defer { if access { url.stopAccessingSecurityScopedResource() } }
         do {
-            let record = try library.importVideo(url, title: eyeCapture ? "眼动检测" : mode, source: source)
+            var record = try library.importVideo(url, title: eyeCapture ? "眼动检测" : mode, source: source)
+            record.subject = BodySubject(massKg:Double(weight) ?? 67,heightCm:Double(height) ?? 173,profile:sex == "女性参数" ? "F" : "M")
+            try library.update(record)
             selected = record
             page = ""
             tab = "记录"
             // Save first; analysis is explicitly initiated from the saved record.
         } catch { self.error = "保存视频失败：\(error.localizedDescription)" }
     }
+    private func analyzeBody(_ record: MotionRecord) {
+        busy=true;analysisTitle="正在分析身体运动"
+        let url=library.directory.appendingPathComponent(record.videoName)
+        let directory=library.directory
+        let mode=record.title == "步态" ? "gait" : record.title == "静态站立" ? "standing" : "sts"
+        Task {
+            var updated=record
+            do {
+                let output=try await Task.detached(priority:.userInitiated) {
+                    try await BodyVideoAnalysis().analyze(video:url,subject:record.subject ?? BodySubject(),mode:mode)
+                }.value
+                try JSONEncoder().encode(output.frames).write(to:directory.appendingPathComponent(record.id.uuidString+"-landmarks.json"),options:.atomic)
+                try JSONEncoder().encode(output.report).write(to:directory.appendingPathComponent(record.id.uuidString+"-body-report.json"),options:.atomic)
+                updated.bodyReport=output.report;updated.message="身体分析已完成"
+            } catch { updated.message="无法分析：\(error.localizedDescription)" }
+            do { try library.update(updated) } catch { self.error="记录保存失败：\(error.localizedDescription)" }
+            selected=updated;busy=false
+        }
+    }
     private func analyze(_ record: MotionRecord, source: CaptureSource) {
+        analysisTitle = "正在分析眼动"
         busy = true
         let url = library.directory.appendingPathComponent(record.videoName)
         Task {
