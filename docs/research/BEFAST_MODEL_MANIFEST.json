@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-09-23",
+  "cache_directory": "/Volumes/macOSexternal/Documents/proj/model-cache/befast",
+  "models": [
+    {
+      "file": "face_landmarker.task",
+      "url": "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+      "bytes": 3758596,
+      "sha256": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
+      "license_note": "MediaPipe code: Apache-2.0; model-card/weight terms pending archive",
+      "validation": "Downloaded; ZIP members and CRC verified; no inference",
+      "bundled_in_app": false
+    },
+    {
+      "file": "silero_vad.onnx",
+      "url": "https://raw.githubusercontent.com/snakers4/silero-vad/60b7ffa243625ebdc1070275a29f18c87843786a/src/silero_vad/data/silero_vad.onnx",
+      "bytes": 2327524,
+      "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3",
+      "license_note": "MIT per publisher repository",
+      "validation": "Downloaded and hashed; no ONNX structural/inference test",
+      "bundled_in_app": false
+    }
+  ]
+}
