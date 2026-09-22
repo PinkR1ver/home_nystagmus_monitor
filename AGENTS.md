@@ -9,7 +9,7 @@
 ## Current Mainline (2026-09-14)
 - Read `.agents/spec/README.md` and `.agents/spec/mobile-kinematics-integration.md` before planning new work.
 - Confirmed: Android is the current priority; use the supplied Motion Lab Android App as the host and its existing UI as the visual baseline. Add an eye-movement detection section.
-- iPhone/iPad is archived/paused for now; preserve code and implementation references for later parallel platform development. Do not schedule iOS implementation in the current phase.
+- Apple development resumed by explicit user request on 2026-09-22 on branch `codex/apple-motion-lab`; follow the Android Motion Lab visual design. Android remains the primary mainline. See `.agents/spec/apple-motion-lab.md`.
 - Existing capabilities stay in place as integration sources; earlier hardening backlog is secondary to this mainline.
 - Historical phase snapshot: `.agents/archive/docs/home-nystagmus-phase-20260914.md`; consult only for history.
 

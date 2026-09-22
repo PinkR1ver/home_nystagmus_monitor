@@ -4,10 +4,10 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>运动实验室</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Honme Nystagmus Monitor</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
@@ -19,29 +19,29 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>0.1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>UIRequiresFullScreen</key>
-	<true/>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIColorName</key>
-		<string>systemBackgroundColor</string>
-	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Record a short eye movement video for prototype analysis.</string>
+	<string>录制运动或眼部视频，保存到本机并生成评估记录。</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Video capture may include audio while recording a prototype sample.</string>
+	<string>录制视频时使用麦克风。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Import an existing eye movement video for prototype analysis.</string>
+	<string>导入运动或眼部视频，在本机查看与分析。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>systemBackgroundColor</string>
+	</dict>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

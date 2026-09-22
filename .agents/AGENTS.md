@@ -9,7 +9,7 @@
 ## Current Mainline (2026-09-14)
 - Read `.agents/spec/README.md` and `.agents/spec/mobile-kinematics-integration.md` before planning new work.
 - Confirmed: Android is the current priority; use the supplied Motion Lab Android App as the host and its existing UI as the visual baseline. Add an eye-movement detection section.
-- iPhone/iPad is archived/paused for now; preserve code and implementation references for later parallel platform development. Do not schedule iOS implementation in the current phase.
+- Apple development resumed by explicit user request on 2026-09-22 on branch `codex/apple-motion-lab`; follow the Android Motion Lab visual design. Android remains the primary mainline. See `.agents/spec/apple-motion-lab.md`.
 - Existing capabilities stay in place as integration sources; earlier hardening backlog is secondary to this mainline.
 - Historical phase snapshot: `.agents/archive/docs/home-nystagmus-phase-20260914.md`; consult only for history.
 
@@ -36,7 +36,7 @@
 - Environment: Android Studio + OpenJDK available; Xcode available for iPhone prototype
 - Algorithm: integrated baseline implementation with ongoing optimization
 - Primary objective now: "reliability, clarity, and production readiness"
-- iPhone prototype currently has no database. Dashboard analysis now uses the bundled `swinunet_web.onnx` through ONNX Runtime iOS (`onnxruntime-swift-package-manager` pinned at `1.24.2`) to estimate per-frame 3D gaze vectors, then converts vectors to pitch/yaw for local signal analysis.
+- Apple Motion Lab now persists local video records and Codable reports in Documents/MotionLab. The earlier prototype had no database. Dashboard analysis now uses the bundled `swinunet_web.onnx` through ONNX Runtime iOS (`onnxruntime-swift-package-manager` pinned at `1.24.2`) to estimate per-frame 3D gaze vectors, then converts vectors to pitch/yaw for local signal analysis.
 - Rehabilitation demo uses three weighted third-party pipelines: YOLO11n Pose for body landmarks, FCQ MobileNetV3 Core ML for independent head pose, and the existing `swinunet_web.onnx` for gaze. It does not use Apple body/face landmark models.
 - Rehabilitation capture prefers the calibrated back `builtInDualWideCamera` (physical wide + ultrawide). Synchronized disparity depth and camera intrinsics lift YOLO joints into camera-space X/Y/Z; unsupported devices fall back to rear single-camera inference.
 - Rehabilitation UI is a dark, media-first clinical capture surface with a live stereo-depth picture-in-picture, skeleton overlay, head/gaze/depth metrics, model latency readout, video import/replay, and a stateful start/stop assessment action.

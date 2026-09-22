@@ -1,12 +1,12 @@
 import CoreGraphics
 import Foundation
 
-enum CaptureSource: String, Equatable {
+enum CaptureSource: String, Codable, Equatable {
     case camera = "Camera capture"
     case importedVideo = "Imported video"
 }
 
-enum NystagmusFinding: String, Equatable {
+enum NystagmusFinding: String, Codable, Equatable {
     case detected = "Nystagmus signal detected"
     case notDetected = "No clear nystagmus signal"
     case inconclusive = "Needs another capture"
@@ -23,15 +23,15 @@ enum NystagmusFinding: String, Equatable {
     }
 }
 
-struct GazeSample: Identifiable, Equatable {
-    let id = UUID()
+struct GazeSample: Identifiable, Codable, Equatable {
+    var id = UUID()
     let time: Double
     let horizontal: Double
     let vertical: Double
 }
 
-struct SignalPattern: Identifiable, Equatable {
-    let id = UUID()
+struct SignalPattern: Identifiable, Codable, Equatable {
+    var id = UUID()
     let startTime: Double
     let peakTime: Double
     let endTime: Double
@@ -39,7 +39,7 @@ struct SignalPattern: Identifiable, Equatable {
     let fastPhaseFirst: Bool
 }
 
-struct AxisSignalSummary: Equatable {
+struct AxisSignalSummary: Codable, Equatable {
     let title: String
     let present: Bool
     let directionLabel: String
@@ -52,8 +52,8 @@ struct AxisSignalSummary: Equatable {
     let patterns: [SignalPattern]
 }
 
-struct EyeEvidenceFrame: Identifiable, Equatable {
-    let id = UUID()
+struct EyeEvidenceFrame: Identifiable, Codable, Equatable {
+    var id = UUID()
     let timeSeconds: Double
     let sourceFrameURL: URL
     let cropFrameURL: URL
@@ -61,7 +61,7 @@ struct EyeEvidenceFrame: Identifiable, Equatable {
     let roiModeLabel: String
 }
 
-struct AnalysisResult: Equatable {
+struct AnalysisResult: Codable, Equatable {
     let source: CaptureSource
     let fileName: String
     let durationSeconds: Double

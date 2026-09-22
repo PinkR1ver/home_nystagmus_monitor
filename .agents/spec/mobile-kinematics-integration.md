@@ -57,3 +57,7 @@
 - 复用当前仓库 Android `swinunet_web.onnx`；同 iPhone 文件 SHA-256 一致，无需重新下载模型。
 - 采用本地离线推理，不增加服务器同步。详细实现与验证状态以新项目 `docs/EYE_DETECTION.md` 和 `.agents/spec/eye-movement-section.md` 为准。
 - 本机模型 CPU 单帧 smoke、Android 构建、49 项回归、APK 签名及内置模型校验均通过。没有连接 Android 真机，设备验收未执行。
+
+## 2026-09-22 update
+
+Apple development explicitly resumed in a separate `codex/apple-motion-lab` branch. Its visual baseline is Android v0.5.0 (`ee5243d`); see [Apple spec](apple-motion-lab.md). Earlier paused/offline-only statements above describe the initial integration phase; Android cloud sync is now delivered.
