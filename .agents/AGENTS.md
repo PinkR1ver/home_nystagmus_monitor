@@ -4,9 +4,16 @@
 - Build home monitoring tools for possible nystagmus.
 - Android app collects session records and uploads them to a remote server.
 - iPhone prototype demonstrates the device workflow with capture/import and a polished analysis dashboard.
-- Current phase goal: maintain stable mobile workflows and continue hardening.
+- Current phase goal: discuss and integrate the supplied mobile-kinematics Android App as the next main workstream (2026-09-14 user direction).
 
-## Current Phase Scope
+## Current Mainline (2026-09-14)
+- Read `.agents/spec/README.md` and `.agents/spec/mobile-kinematics-integration.md` before planning new work.
+- Confirmed: Android is the current priority; use the supplied Motion Lab Android App as the host and its existing UI as the visual baseline. Add an eye-movement detection section.
+- Apple development resumed by explicit user request on 2026-09-22 on branch `codex/apple-motion-lab`; follow the Android Motion Lab visual design. Android remains the primary mainline. See `.agents/spec/apple-motion-lab.md`.
+- Existing capabilities stay in place as integration sources; earlier hardening backlog is secondary to this mainline.
+- Historical phase snapshot: `.agents/archive/docs/home-nystagmus-phase-20260914.md`; consult only for history.
+
+## Existing Capability Scope
 - Android productized capture, record, and settings workflow
 - iPhone prototype capture/import-to-dashboard workflow
 - Stable app architecture and package structure
@@ -25,10 +32,15 @@
 - Platforms:
   - Android: Kotlin + Jetpack Compose in `android-app/`
   - iPhone prototype: SwiftUI in `iphone-app/`
+  - Rehabilitation demo: SwiftUI in `rehab-demo/`
 - Environment: Android Studio + OpenJDK available; Xcode available for iPhone prototype
 - Algorithm: integrated baseline implementation with ongoing optimization
 - Primary objective now: "reliability, clarity, and production readiness"
-- iPhone prototype currently has no database. Dashboard analysis now uses the bundled `swinunet_web.onnx` through ONNX Runtime iOS (`onnxruntime-swift-package-manager` pinned at `1.24.2`) to estimate per-frame 3D gaze vectors, then converts vectors to pitch/yaw for local signal analysis.
+- Apple Motion Lab now persists local video records and Codable reports in Documents/MotionLab. The earlier prototype had no database. Dashboard analysis now uses the bundled `swinunet_web.onnx` through ONNX Runtime iOS (`onnxruntime-swift-package-manager` pinned at `1.24.2`) to estimate per-frame 3D gaze vectors, then converts vectors to pitch/yaw for local signal analysis.
+- Rehabilitation demo uses three weighted third-party pipelines: YOLO11n Pose for body landmarks, FCQ MobileNetV3 Core ML for independent head pose, and the existing `swinunet_web.onnx` for gaze. It does not use Apple body/face landmark models.
+- Rehabilitation capture prefers the calibrated back `builtInDualWideCamera` (physical wide + ultrawide). Synchronized disparity depth and camera intrinsics lift YOLO joints into camera-space X/Y/Z; unsupported devices fall back to rear single-camera inference.
+- Rehabilitation UI is a dark, media-first clinical capture surface with a live stereo-depth picture-in-picture, skeleton overlay, head/gaze/depth metrics, model latency readout, video import/replay, and a stateful start/stop assessment action.
+- The rehabilitation demo handoff includes a verified 34-second 1080p split-screen model video and an 8-slide Chinese HyperFrames HTML deck under `rehab-demo/showcase/`; all illustrative metrics are labeled as demo/reference data.
 - iPhone prototype capture supports fixed back lens choices (`0.5`, `1`, `2`, `5`), tap/keyboard start-stop, and iPhone 16-series Camera Control via `AVCaptureEventInteraction`.
 - iPhone dashboard is now evidence-oriented after VertiWisdom: looped cropped-eye preview, horizontal/vertical signal charts, fast/slow phase pattern overlays, and SPV/pattern/quality metrics. The processing pipeline diagram was intentionally removed from the prototype dashboard to keep the page direct.
 - iPhone cropped-eye preview uses an automatic ROI pipeline: Apple Vision face landmarks (`leftEye`/`rightEye`) for face videos, with adaptive bright-content optical single-eye ROI fallback and a tighter static fallback when no face/eye landmarks are detected.
@@ -95,3 +107,11 @@ flowchart TD
 - Reuse same `recordId` and account-scoped sync semantics for doctor web/desktop client.
 - Keep archive workflow as metadata state transition, not destructive deletion.
 - Doctor-side should consume server records API as canonical analysis output.
+
+## Eye detection timing decision
+- User confirmed post-recording analysis: save the complete video first, then run eye-movement detection and generate the report. Real-time eye detection is outside the current first-version scope.
+
+## Cloud collection backend (2026-09-21)
+- A separate PostgreSQL-backed collection service is deployed; see `.agents/spec/motion-cloud-ingestion.md` and `server/ingest/README.md`.
+- Accepts original files and client-origin reports for eye/body/IMU via authenticated HTTPS; server inference is not part of this deployment.
+- Android v0.5.0 in the Motion Lab checkout now has optional foreground HTTPS synchronization and per-account queues. Sync is user-triggered, not automatic; see its docs/CLOUD_SYNC.md.

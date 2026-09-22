@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0897ED782FACA082317279F6 /* Pods_HomeNystagmusMonitoriOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6166AAB26526CD2FFD6A0921 /* Pods_HomeNystagmusMonitoriOS.framework */; };
+		230C8D9B790C4EC7C84787E2 /* EyeRegionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F3C72918B400C94556199C /* EyeRegionView.swift */; };
+		389EDB8807AAB41A08D8898A /* EyeRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B25FADAB8CBD7BD5F9187D4 /* EyeRegion.swift */; };
 		A10100000000000000000001 /* HomeNystagmusMonitoriOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10200000000000000000001 /* HomeNystagmusMonitoriOSApp.swift */; };
 		A10100000000000000000002 /* AnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10200000000000000000002 /* AnalysisModels.swift */; };
 		A10100000000000000000003 /* VideoAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10200000000000000000003 /* VideoAnalysisService.swift */; };
@@ -20,9 +23,32 @@
 		A1010000000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1020000000000000000000B /* Assets.xcassets */; };
 		B10100000000000000000001 /* ONNXRuntimeGazeEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10200000000000000000001 /* ONNXRuntimeGazeEstimator.swift */; };
 		B10100000000000000000002 /* onnxruntime in Frameworks */ = {isa = PBXBuildFile; productRef = B10D00000000000000000001 /* onnxruntime */; };
+		1F2E3E54FDE13003E2BFD9D3 /* MotionIMU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6681628A3D0B727F1AD55D37; };
+		7332A73772128B4F44D3FAD7 /* IMUData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE71DDA26E067669BD76047; };
+		B518E8E975805E4A61DB6AD5 /* BodyPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2B599B16C68F880571F28BA; };
+		0849CE20287D1CB579A35A8A /* BodyPoseDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C827195F264DB83AC97BFAC; };
+		3F369E52CE7A8CED581020EB /* pose_landmarker_heavy.task in Resources */ = {isa = PBXBuildFile; fileRef = 9AFBE9DA29EBA732677D64D0; };
+		61012C491D98321753C3C0C8 /* mediapipe_segment_model_v1.json in Resources */ = {isa = PBXBuildFile; fileRef = FEABC2DE06B731A7FD74646A; };
+		F108BCBD06DFEC24149A27BE /* sts_detection_v1.json in Resources */ = {isa = PBXBuildFile; fileRef = 7140B68DBAE09751849B3B80; };
+		693DB18B2D89FA7C3E2A8F85 /* BodySegmentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2649FD364A27F213B5CB4AB4; };
+		709163CC8222C1AB7DC7242B /* BodyStsAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E01AE1EB0F05C390038D316; };
+		2D555E42DCED6571701CFD12 /* BodyVideoAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 301A15BDDE905BF3101424FA; };
+		4B22D95F198DC400404AF98D /* MotionCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62660E407F4EFB1B483EC150; };
+		475DE105A1892AEDDD28B30E /* CloudRuntimeSmoke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA6EECDA5319AE61954970D; };
+		2C1BAD2A4C91B81746863B07 /* BodyMotionMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C9B57E779803E9D76D4085C; };
+		71E2C244ECAF1D4D2A58ECE1 /* BodyGaitMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6A20A5891DB0DC2AB67740; };
+		20E0719A827905FC74648C99 /* BodyMotionReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF34682C6EE0C26A639CE8C; };
+		B2EFEB297D5E48582A811884 /* LiveBodyFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627DAA47BDE0037F3E87269A; };
+		2514FD3962DA5E89E55434A9 /* EyeQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978F4D94138524518BE1917F; };
+		4599E910F1157C61C1C533F2 /* MotionArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C4BE6B0D77650EBF92D75F; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		19F3C72918B400C94556199C /* EyeRegionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeRegionView.swift; sourceTree = "<group>"; };
+		292AB568E5BBBE8D691CDC41 /* Pods-HomeNystagmusMonitoriOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HomeNystagmusMonitoriOS.debug.xcconfig"; path = "Target Support Files/Pods-HomeNystagmusMonitoriOS/Pods-HomeNystagmusMonitoriOS.debug.xcconfig"; sourceTree = "<group>"; };
+		2E4FE74FEF5D391ED94A424D /* Pods-HomeNystagmusMonitoriOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HomeNystagmusMonitoriOS.release.xcconfig"; path = "Target Support Files/Pods-HomeNystagmusMonitoriOS/Pods-HomeNystagmusMonitoriOS.release.xcconfig"; sourceTree = "<group>"; };
+		6166AAB26526CD2FFD6A0921 /* Pods_HomeNystagmusMonitoriOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HomeNystagmusMonitoriOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B25FADAB8CBD7BD5F9187D4 /* EyeRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeRegion.swift; sourceTree = "<group>"; };
 		A10200000000000000000001 /* HomeNystagmusMonitoriOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeNystagmusMonitoriOSApp.swift; sourceTree = "<group>"; };
 		A10200000000000000000002 /* AnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModels.swift; sourceTree = "<group>"; };
 		A10200000000000000000003 /* VideoAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoAnalysisService.swift; sourceTree = "<group>"; };
@@ -32,11 +58,29 @@
 		A10200000000000000000007 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		A10200000000000000000008 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		A10200000000000000000009 /* swinunet_web.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = swinunet_web.onnx; sourceTree = "<group>"; };
-		A10200000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A10200000000000000000011 /* HomeNystagmusMonitoriOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomeNystagmusMonitoriOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1020000000000000000000A /* NystagmusSignalAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NystagmusSignalAnalysis.swift; sourceTree = "<group>"; };
 		A1020000000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A10200000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10200000000000000000011 /* HomeNystagmusMonitoriOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomeNystagmusMonitoriOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10200000000000000000001 /* ONNXRuntimeGazeEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONNXRuntimeGazeEstimator.swift; sourceTree = "<group>"; };
+		6681628A3D0B727F1AD55D37 /* MotionIMU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionIMU.swift; sourceTree = "<group>"; };
+		0FE71DDA26E067669BD76047 /* IMUData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMUData.swift; sourceTree = "<group>"; };
+		A2B599B16C68F880571F28BA /* BodyPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPose.swift; sourceTree = "<group>"; };
+		9C827195F264DB83AC97BFAC /* BodyPoseDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseDetector.swift; sourceTree = "<group>"; };
+		9AFBE9DA29EBA732677D64D0 /* pose_landmarker_heavy.task */ = {isa = PBXFileReference; lastKnownFileType = file; path = pose_landmarker_heavy.task; sourceTree = "<group>"; };
+		FEABC2DE06B731A7FD74646A /* mediapipe_segment_model_v1.json */ = {isa = PBXFileReference; lastKnownFileType = file; path = mediapipe_segment_model_v1.json; sourceTree = "<group>"; };
+		7140B68DBAE09751849B3B80 /* sts_detection_v1.json */ = {isa = PBXFileReference; lastKnownFileType = file; path = sts_detection_v1.json; sourceTree = "<group>"; };
+		2649FD364A27F213B5CB4AB4 /* BodySegmentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodySegmentModel.swift; sourceTree = "<group>"; };
+		2E01AE1EB0F05C390038D316 /* BodyStsAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyStsAnalyzer.swift; sourceTree = "<group>"; };
+		301A15BDDE905BF3101424FA /* BodyVideoAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyVideoAnalysis.swift; sourceTree = "<group>"; };
+		62660E407F4EFB1B483EC150 /* MotionCloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionCloud.swift; sourceTree = "<group>"; };
+		1AA6EECDA5319AE61954970D /* CloudRuntimeSmoke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRuntimeSmoke.swift; sourceTree = "<group>"; };
+		0C9B57E779803E9D76D4085C /* BodyMotionMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMotionMetrics.swift; sourceTree = "<group>"; };
+		6D6A20A5891DB0DC2AB67740 /* BodyGaitMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyGaitMetrics.swift; sourceTree = "<group>"; };
+		5BF34682C6EE0C26A639CE8C /* BodyMotionReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMotionReportView.swift; sourceTree = "<group>"; };
+		627DAA47BDE0037F3E87269A /* LiveBodyFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBodyFeedback.swift; sourceTree = "<group>"; };
+		978F4D94138524518BE1917F /* EyeQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeQuality.swift; sourceTree = "<group>"; };
+		59C4BE6B0D77650EBF92D75F /* MotionArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionArchive.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,17 +89,38 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10100000000000000000002 /* onnxruntime in Frameworks */,
+				0897ED782FACA082317279F6 /* Pods_HomeNystagmusMonitoriOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		052D478C3CDA1C6541911DBE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6166AAB26526CD2FFD6A0921 /* Pods_HomeNystagmusMonitoriOS.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5AB123CEDB676A55A3CB4215 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				292AB568E5BBBE8D691CDC41 /* Pods-HomeNystagmusMonitoriOS.debug.xcconfig */,
+				2E4FE74FEF5D391ED94A424D /* Pods-HomeNystagmusMonitoriOS.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		A10400000000000000000001 = {
 			isa = PBXGroup;
 			children = (
 				A10400000000000000000002 /* HomeNystagmusMonitoriOS */,
 				A10400000000000000000007 /* Products */,
+				5AB123CEDB676A55A3CB4215 /* Pods */,
+				052D478C3CDA1C6541911DBE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -74,6 +139,10 @@
 		A10400000000000000000003 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				978F4D94138524518BE1917F /* EyeQuality.swift */,
+				A2B599B16C68F880571F28BA /* BodyPose.swift */,
+				0FE71DDA26E067669BD76047 /* IMUData.swift */,
+				6B25FADAB8CBD7BD5F9187D4 /* EyeRegion.swift */,
 				A10200000000000000000002 /* AnalysisModels.swift */,
 			);
 			path = Models;
@@ -82,6 +151,17 @@
 		A10400000000000000000004 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				59C4BE6B0D77650EBF92D75F /* MotionArchive.swift */,
+				627DAA47BDE0037F3E87269A /* LiveBodyFeedback.swift */,
+				6D6A20A5891DB0DC2AB67740 /* BodyGaitMetrics.swift */,
+				0C9B57E779803E9D76D4085C /* BodyMotionMetrics.swift */,
+				1AA6EECDA5319AE61954970D /* CloudRuntimeSmoke.swift */,
+				62660E407F4EFB1B483EC150 /* MotionCloud.swift */,
+				301A15BDDE905BF3101424FA /* BodyVideoAnalysis.swift */,
+				2E01AE1EB0F05C390038D316 /* BodyStsAnalyzer.swift */,
+				2649FD364A27F213B5CB4AB4 /* BodySegmentModel.swift */,
+				9C827195F264DB83AC97BFAC /* BodyPoseDetector.swift */,
+				6681628A3D0B727F1AD55D37 /* MotionIMU.swift */,
 				A10200000000000000000003 /* VideoAnalysisService.swift */,
 				A10200000000000000000004 /* CameraVideoPicker.swift */,
 				B10200000000000000000001 /* ONNXRuntimeGazeEstimator.swift */,
@@ -93,6 +173,8 @@
 		A10400000000000000000005 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				5BF34682C6EE0C26A639CE8C /* BodyMotionReportView.swift */,
+				19F3C72918B400C94556199C /* EyeRegionView.swift */,
 				A10200000000000000000005 /* ContentView.swift */,
 				A10200000000000000000006 /* CaptureStartView.swift */,
 				A10200000000000000000007 /* DashboardView.swift */,
@@ -104,6 +186,9 @@
 		A10400000000000000000006 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				7140B68DBAE09751849B3B80 /* sts_detection_v1.json */,
+				FEABC2DE06B731A7FD74646A /* mediapipe_segment_model_v1.json */,
+				9AFBE9DA29EBA732677D64D0 /* pose_landmarker_heavy.task */,
 				A10200000000000000000010 /* Info.plist */,
 				A10200000000000000000009 /* swinunet_web.onnx */,
 				A1020000000000000000000B /* Assets.xcassets */,
@@ -126,6 +211,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A10900000000000000000002 /* Build configuration list for PBXNativeTarget "HomeNystagmusMonitoriOS" */;
 			buildPhases = (
+				CA320891203BE2A2FDA278D9 /* [CP] Check Pods Manifest.lock */,
 				A10600000000000000000001 /* Sources */,
 				A10300000000000000000001 /* Frameworks */,
 				A10700000000000000000001 /* Resources */,
@@ -183,6 +269,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F108BCBD06DFEC24149A27BE /* sts_detection_v1.json in Resources */,
+				61012C491D98321753C3C0C8 /* mediapipe_segment_model_v1.json in Resources */,
+				3F369E52CE7A8CED581020EB /* pose_landmarker_heavy.task in Resources */,
 				A10100000000000000000009 /* swinunet_web.onnx in Resources */,
 				A1010000000000000000000B /* Assets.xcassets in Resources */,
 			);
@@ -190,11 +279,53 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		CA320891203BE2A2FDA278D9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-HomeNystagmusMonitoriOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		A10600000000000000000001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4599E910F1157C61C1C533F2 /* MotionArchive.swift in Sources */,
+				2514FD3962DA5E89E55434A9 /* EyeQuality.swift in Sources */,
+				B2EFEB297D5E48582A811884 /* LiveBodyFeedback.swift in Sources */,
+				20E0719A827905FC74648C99 /* BodyMotionReportView.swift in Sources */,
+				71E2C244ECAF1D4D2A58ECE1 /* BodyGaitMetrics.swift in Sources */,
+				2C1BAD2A4C91B81746863B07 /* BodyMotionMetrics.swift in Sources */,
+				475DE105A1892AEDDD28B30E /* CloudRuntimeSmoke.swift in Sources */,
+				4B22D95F198DC400404AF98D /* MotionCloud.swift in Sources */,
+				2D555E42DCED6571701CFD12 /* BodyVideoAnalysis.swift in Sources */,
+				709163CC8222C1AB7DC7242B /* BodyStsAnalyzer.swift in Sources */,
+				693DB18B2D89FA7C3E2A8F85 /* BodySegmentModel.swift in Sources */,
+				0849CE20287D1CB579A35A8A /* BodyPoseDetector.swift in Sources */,
+				B518E8E975805E4A61DB6AD5 /* BodyPose.swift in Sources */,
+				7332A73772128B4F44D3FAD7 /* IMUData.swift in Sources */,
+				1F2E3E54FDE13003E2BFD9D3 /* MotionIMU.swift in Sources */,
+				230C8D9B790C4EC7C84787E2 /* EyeRegionView.swift in Sources */,
+				389EDB8807AAB41A08D8898A /* EyeRegion.swift in Sources */,
 				A10100000000000000000001 /* HomeNystagmusMonitoriOSApp.swift in Sources */,
 				A10100000000000000000002 /* AnalysisModels.swift in Sources */,
 				A10100000000000000000003 /* VideoAnalysisService.swift in Sources */,
@@ -329,11 +460,13 @@
 		};
 		A10A00000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 292AB568E5BBBE8D691CDC41 /* Pods-HomeNystagmusMonitoriOS.debug.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 949ZMC2D2T;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HomeNystagmusMonitoriOS/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -356,10 +489,12 @@
 		};
 		A10A00000000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2E4FE74FEF5D391ED94A424D /* Pods-HomeNystagmusMonitoriOS.release.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 949ZMC2D2T;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HomeNystagmusMonitoriOS/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

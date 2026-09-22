@@ -1,0 +1,7 @@
+platform :ios, '17.0'
+project 'HomeNystagmusMonitoriOS.xcodeproj'
+
+target 'HomeNystagmusMonitoriOS' do
+  use_frameworks!
+  pod 'MediaPipeTasksVision', '0.10.35'
+end

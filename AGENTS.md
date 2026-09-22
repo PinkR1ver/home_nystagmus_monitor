@@ -4,9 +4,16 @@
 - Build home monitoring tools for possible nystagmus.
 - Android app collects session records and uploads them to a remote server.
 - iPhone prototype demonstrates the device workflow with capture/import and a polished analysis dashboard.
-- Current phase goal: maintain stable mobile workflows and continue hardening.
+- Current phase goal: discuss and integrate the supplied mobile-kinematics Android App as the next main workstream (2026-09-14 user direction).
 
-## Current Phase Scope
+## Current Mainline (2026-09-14)
+- Read `.agents/spec/README.md` and `.agents/spec/mobile-kinematics-integration.md` before planning new work.
+- Confirmed: Android is the current priority; use the supplied Motion Lab Android App as the host and its existing UI as the visual baseline. Add an eye-movement detection section.
+- Apple development resumed by explicit user request on 2026-09-22 on branch `codex/apple-motion-lab`; follow the Android Motion Lab visual design. Android remains the primary mainline. See `.agents/spec/apple-motion-lab.md`.
+- Existing capabilities stay in place as integration sources; earlier hardening backlog is secondary to this mainline.
+- Historical phase snapshot: `.agents/archive/docs/home-nystagmus-phase-20260914.md`; consult only for history.
+
+## Existing Capability Scope
 - Android productized capture, record, and settings workflow
 - iPhone prototype capture/import-to-dashboard workflow
 - Stable app architecture and package structure
@@ -86,3 +93,6 @@ flowchart TD
 - Reuse same `recordId` and account-scoped sync semantics for doctor web/desktop client.
 - Keep archive workflow as metadata state transition, not destructive deletion.
 - Doctor-side should consume server records API as canonical analysis output.
+
+## Eye detection timing decision
+- User confirmed post-recording analysis: save the complete video first, then run eye-movement detection and generate the report. Real-time eye detection is outside the current first-version scope.

@@ -1,0 +1,10 @@
+[Unit]
+Description=Motion Lab database and artifact backup
+[Service]
+Type=oneshot
+User=motionlab
+Group=motionlab
+WorkingDirectory=/opt/motion-lab
+Environment=DATABASE_URL=dbname=motion_lab user=motionlab host=/var/run/postgresql
+UMask=0077
+ExecStart=/bin/bash /opt/motion-lab/deploy/backup.sh

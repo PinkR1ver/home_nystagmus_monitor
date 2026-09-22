@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>三信号立体康复评估 · 模型演示</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/demo-signals-v5.js"></script>
+    <style>
+      :root {
+        --bg: #101814;
+        --surface: #18231d;
+        --surface-raised: #213027;
+        --fg: #f2f7f3;
+        --muted: #9aa9a0;
+        --mint: #8df0bd;
+        --amber: #f4b760;
+        --sky: #7fc7ee;
+        --red: #ef746f;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Arial, sans-serif;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(141, 240, 189, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(141, 240, 189, 0.035) 1px, transparent 1px);
+        background-size: 80px 80px;
+      }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+      .clip { position: absolute; inset: 0; }
+      .scene-bg { z-index: 0; background: var(--bg); }
+      .eyebrow {
+        color: var(--mint);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+      }
+      .mono { font-family: Menlo, monospace; font-variant-numeric: tabular-nums; }
+      .top-rail {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 42px;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(242, 247, 243, .16);
+      }
+      .rail-title { font-size: 26px; font-weight: 700; letter-spacing: .02em; }
+      .model-chain { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 20px; }
+      .model-chain b { color: var(--fg); font-weight: 700; }
+      .model-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--mint); }
+      .demo-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border: 1px solid rgba(244, 183, 96, .45);
+        border-radius: 999px;
+        color: var(--amber);
+        font-size: 17px;
+        letter-spacing: .08em;
+      }
+      .video-shell {
+        position: absolute;
+        left: 64px;
+        top: 146px;
+        width: 900px;
+        height: 790px;
+        border-radius: 30px;
+        overflow: hidden;
+        background: #0b100d;
+        border: 1px solid rgba(242, 247, 243, .18);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, .38);
+      }
+      video.media {
+        position: absolute;
+        left: 64px;
+        top: 146px;
+        width: 900px;
+        height: 790px;
+        object-fit: cover;
+        border-radius: 30px;
+        z-index: 2;
+      }
+      #gaze-video { object-fit: contain; background: #f4f5f2; opacity: 0; }
+      .video-frame-overlay {
+        position: absolute;
+        left: 64px;
+        top: 146px;
+        width: 900px;
+        height: 790px;
+        z-index: 3;
+        pointer-events: none;
+        border-radius: 30px;
+        border: 1px solid rgba(242, 247, 243, .20);
+      }
+      .video-label {
+        position: absolute;
+        left: 88px;
+        top: 170px;
+        z-index: 4;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: rgba(16, 24, 20, .82);
+        color: var(--fg);
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .scan-corner { position: absolute; width: 50px; height: 50px; border-color: var(--mint); border-style: solid; }
+      .scan-tl { left: 28px; top: 28px; border-width: 3px 0 0 3px; }
+      .scan-tr { right: 28px; top: 28px; border-width: 3px 3px 0 0; }
+      .scan-bl { left: 28px; bottom: 28px; border-width: 0 0 3px 3px; }
+      .scan-br { right: 28px; bottom: 28px; border-width: 0 3px 3px 0; }
+      .dashboard {
+        position: absolute;
+        right: 64px;
+        top: 146px;
+        width: 828px;
+        height: 790px;
+        z-index: 3;
+        display: grid;
+        gap: 18px;
+      }
+      .body-dashboard { grid-template-rows: 456px 148px 150px; }
+      .gaze-dashboard { grid-template-rows: 150px 470px 134px; }
+      .instrument {
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        background: var(--surface);
+        border: 1px solid rgba(242, 247, 243, .12);
+      }
+      .instrument-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 26px 12px;
+      }
+      .instrument-title { font-size: 21px; font-weight: 700; }
+      .instrument-unit { color: var(--muted); font-size: 16px; }
+      .skeleton-grid {
+        position: absolute;
+        left: 26px;
+        top: 74px;
+        width: 394px;
+        height: 350px;
+        border-radius: 20px;
+        background:
+          linear-gradient(rgba(127, 199, 238, .07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(127, 199, 238, .07) 1px, transparent 1px),
+          #111a16;
+        background-size: 44px 44px;
+      }
+      #body-skeleton { width: 100%; height: 100%; }
+      .bone { stroke: var(--mint); stroke-width: 5; stroke-linecap: round; opacity: .86; }
+      .joint { fill: var(--bg); stroke: var(--mint); stroke-width: 4; }
+      .joint-hot { fill: var(--amber); stroke: #ffe4b8; }
+      .axis-line { stroke: rgba(242, 247, 243, .22); stroke-width: 1.5; stroke-dasharray: 5 7; }
+      .depth-readouts {
+        position: absolute;
+        right: 26px;
+        top: 76px;
+        width: 350px;
+        display: grid;
+        gap: 14px;
+      }
+      .readout-row {
+        display: grid;
+        grid-template-columns: 116px 1fr auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 66px;
+        padding: 0 16px;
+        border-radius: 15px;
+        background: var(--surface-raised);
+      }
+      .readout-row span:first-child { color: var(--muted); font-size: 16px; }
+      .readout-row strong { font-size: 24px; }
+      .readout-row em { color: var(--mint); font-style: normal; font-size: 14px; }
+      .metric-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+      .metric {
+        border-radius: 24px;
+        background: var(--surface);
+        border: 1px solid rgba(242, 247, 243, .12);
+        padding: 20px 22px;
+      }
+      .metric-label { color: var(--muted); font-size: 15px; margin-bottom: 12px; }
+      .metric-value { font-size: 31px; font-weight: 700; }
+      .metric-value small { color: var(--muted); font-size: 16px; margin-left: 5px; }
+      .progress-track { height: 9px; margin-top: 14px; border-radius: 999px; background: rgba(242,247,243,.09); overflow: hidden; }
+      .progress-fill { height: 100%; width: 0; transform-origin: left center; border-radius: inherit; background: var(--mint); }
+      .latency-chart { padding: 22px 26px; }
+      .latency-bars { display: grid; grid-template-columns: 130px 1fr 70px; gap: 12px 16px; align-items: center; }
+      .latency-bars span { color: var(--muted); font-size: 15px; }
+      .latency-bars b { text-align: right; font-size: 16px; }
+      .bar-track { height: 10px; border-radius: 999px; background: rgba(242,247,243,.08); overflow: hidden; }
+      .bar-fill { height: 100%; transform-origin: left center; border-radius: inherit; }
+      .head-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+      .head-card { padding: 22px 24px; border-radius: 24px; background: var(--surface); border: 1px solid rgba(242,247,243,.12); }
+      .head-card .axis { color: var(--muted); font-size: 15px; }
+      .head-card strong { display: block; margin-top: 12px; font-size: 34px; }
+      .chart-card { padding: 22px 26px; }
+      #gaze-chart { display: block; width: 100%; height: 376px; }
+      .chart-grid { stroke: rgba(242,247,243,.09); stroke-width: 1; }
+      .chart-zero { stroke: rgba(242,247,243,.28); stroke-width: 1.5; }
+      .chart-line-h { fill: none; stroke: var(--amber); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .chart-line-raw { fill: none; stroke: rgba(242,247,243,.28); stroke-width: 2.5; stroke-linejoin: round; }
+      .chart-line-filtered { fill: none; stroke: rgba(242,247,243,.78); stroke-width: 3; stroke-linejoin: round; }
+      .phase-fast { stroke: var(--red); stroke-width: 8; stroke-linecap: round; }
+      .phase-slow { stroke: var(--sky); stroke-width: 8; stroke-linecap: round; }
+      .turning-dot { fill: var(--mint); stroke: var(--bg); stroke-width: 3; }
+      .chart-line-v { fill: none; stroke: var(--sky); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .chart-playhead { stroke: var(--mint); stroke-width: 2; stroke-dasharray: 7 8; }
+      .chart-dot-h { fill: var(--amber); }
+      .chart-dot-v { fill: var(--sky); }
+      .legend { display: flex; align-items: center; gap: 24px; color: var(--muted); font-size: 15px; }
+      .legend i { display: inline-block; width: 16px; height: 4px; margin-right: 8px; border-radius: 4px; }
+      .gaze-vector-panel { display: grid; grid-template-columns: 1.3fr .7fr; gap: 18px; }
+      .vector-card, .quality-card { padding: 22px 26px; border-radius: 24px; background: var(--surface); border: 1px solid rgba(242,247,243,.12); }
+      .vector-arrow { position: relative; height: 86px; margin-top: 16px; border-radius: 16px; background: #111a16; overflow: hidden; }
+      .vector-axis { position: absolute; left: 50%; top: 14px; bottom: 14px; width: 1px; background: rgba(242,247,243,.16); }
+      #gaze-arrow { position: absolute; left: 50%; top: 39px; width: 118px; height: 6px; border-radius: 6px; background: var(--amber); transform-origin: left center; }
+      #gaze-arrow::after { content: ""; position: absolute; right: -2px; top: -7px; border-left: 16px solid var(--amber); border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+      .quality-value { margin-top: 18px; font-size: 42px; font-weight: 700; }
+      .quality-note { margin-top: 8px; color: var(--muted); font-size: 15px; }
+      .analysis-strip { display:grid; grid-template-columns: 1.25fr .75fr; gap:18px; }
+      .analysis-note, .analysis-result { padding:16px 20px; border-radius:20px; background:var(--surface); border:1px solid rgba(242,247,243,.12); }
+      .analysis-note b, .analysis-result b { display:block; margin-top:7px; font-size:21px; }
+      .analysis-note span, .analysis-result span { color:var(--muted); font-size:14px; }
+      .analysis-result { border-color:rgba(244,183,96,.38); }
+      .bottom-rail {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        bottom: 44px;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      .time-rule { flex: 1; height: 2px; margin: 0 22px; border-radius: 2px; background: rgba(242,247,243,.12); overflow: hidden; }
+      .time-fill { height: 100%; transform-origin: left center; background: var(--mint); }
+      .intro {
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1.3fr .7fr;
+        gap: 90px;
+        padding: 130px 140px;
+        align-items: center;
+        background: var(--bg);
+      }
+      .intro h1 { margin: 22px 0 30px; max-width: 1040px; font-size: 92px; line-height: 1.05; letter-spacing: -.04em; }
+      .intro h1 span { display: inline-block; opacity: 0; }
+      .intro p { max-width: 940px; color: var(--muted); font-size: 29px; line-height: 1.55; }
+      .intro-orbit { position: relative; width: 480px; height: 480px; border-radius: 50%; border: 1px solid rgba(141,240,189,.22); }
+      .intro-orbit::before, .intro-orbit::after { content:""; position:absolute; border-radius:50%; border:1px solid rgba(141,240,189,.15); }
+      .intro-orbit::before { inset: 76px; }
+      .intro-orbit::after { inset: 148px; background: var(--surface); }
+      .orbit-chip { position: absolute; width: 168px; padding: 18px; border-radius: 18px; background: var(--surface-raised); border: 1px solid rgba(242,247,243,.12); font-size: 18px; font-weight: 700; text-align: center; }
+      #chip-body { left: -42px; top: 210px; }
+      #chip-head { right: -30px; top: 88px; }
+      #chip-gaze { right: -28px; bottom: 72px; }
+      .orbit-core { position: absolute; z-index: 2; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px; border-radius: 50%; display: grid; place-items: center; background: var(--mint); color: var(--bg); font-size: 26px; font-weight: 800; }
+      .fusion {
+        z-index: 2;
+        padding: 112px 120px 88px;
+        display: grid;
+        grid-template-columns: 1.05fr .95fr;
+        gap: 86px;
+        align-items: center;
+        background: var(--bg);
+      }
+      .fusion h2 { margin: 20px 0 24px; font-size: 76px; line-height: 1.08; letter-spacing: -.035em; }
+      .fusion p { max-width: 850px; color: var(--muted); font-size: 27px; line-height: 1.55; }
+      .signal-stack { display: grid; gap: 18px; margin-top: 34px; }
+      .signal-pill { display: flex; align-items: center; gap: 16px; width: fit-content; padding: 14px 20px; border-radius: 999px; background: var(--surface); border: 1px solid rgba(242,247,243,.12); font-size: 18px; }
+      .signal-pill i { width: 10px; height: 10px; border-radius: 50%; }
+      .fusion-graphic { position: relative; width: 690px; height: 700px; }
+      .fusion-graphic svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .fusion-path { fill: none; stroke-width: 7; stroke-linecap: round; }
+      .fusion-node { position: absolute; right: 34px; top: 248px; width: 270px; height: 210px; border-radius: 38px; display: grid; place-items: center; text-align: center; background: var(--mint); color: var(--bg); box-shadow: 0 28px 70px rgba(141,240,189,.18); }
+      .fusion-node strong { font-size: 56px; }
+      .fusion-node span { margin-top: -40px; font-size: 20px; font-weight: 700; }
+      .legal { position: absolute; left: 120px; right: 120px; bottom: 38px; color: rgba(242,247,243,.48); font-size: 15px; }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-kv97" id="root" data-composition-id="main" data-start="0" data-duration="19" data-width="1920" data-height="1080">
+      <section data-hf-id="hf-5d13" id="intro" class="clip intro" data-start="0" data-duration="4" data-track-index="1">
+        <div data-hf-id="hf-yeow">
+          <div data-hf-id="hf-ucdi" class="eyebrow">Rehab Motion · Model Demo</div>
+          <h1 data-hf-id="hf-m3fm"><span data-hf-id="hf-v5ph" id="intro-w1">两个后置镜头，</span><span data-hf-id="hf-cwkx" id="intro-w2">同时读懂</span><span data-hf-id="hf-urfv" id="intro-w3">人体、头动与眼动。</span></h1>
+          <p data-hf-id="hf-prep" id="intro-sub">广角＋超广角生成同步深度，三套带权重模型把一次训练转成可量化、可记录、可复盘的信号。</p>
+        </div>
+        <div data-hf-id="hf-m05g" class="intro-orbit" id="intro-orbit">
+          <div data-hf-id="hf-2wfz" class="orbit-core">3 信号</div>
+          <div data-hf-id="hf-qh4g" class="orbit-chip" id="chip-body">YOLO11n Pose</div>
+          <div data-hf-id="hf-n0a7" class="orbit-chip" id="chip-head">FCQ Head Pose</div>
+          <div data-hf-id="hf-uj8x" class="orbit-chip" id="chip-gaze">SwinUNet Gaze</div>
+        </div>
+      </section>
+
+      <div data-hf-id="hf-nvfq" id="body-scene-bg" class="clip scene-bg" data-start="4" data-duration="5" data-track-index="0"></div>
+      <video data-hf-id="hf-mzba" id="body-video" class="clip media" src="assets/body-walk-once-hold-v5.mp4" data-start="4" data-duration="5" data-track-index="1" muted playsinline preload="auto"></video>
+      <section data-hf-id="hf-n69z" id="body" class="clip" data-start="4" data-duration="5" data-track-index="2">
+        <div data-hf-id="hf-xt2i" class="top-rail">
+          <div data-hf-id="hf-lu6o" class="rail-title">源视频实测 2D · 真机双摄升维</div>
+          <div data-hf-id="hf-6t8b" class="model-chain"><span data-hf-id="hf-9uhe" class="model-dot"></span><b data-hf-id="hf-22sd">YOLO11n Pose</b><span data-hf-id="hf-465a">＋</span><b data-hf-id="hf-dm2n">Dual Wide Depth</b><span data-hf-id="hf-exwb" class="demo-tag">源视频实测</span></div>
+        </div>
+        <div data-hf-id="hf-us3q" class="video-frame-overlay"><i data-hf-id="hf-16jv" class="scan-corner scan-tl"></i><i data-hf-id="hf-n14l" class="scan-corner scan-tr"></i><i data-hf-id="hf-8cj1" class="scan-corner scan-bl"></i><i data-hf-id="hf-1f5f" class="scan-corner scan-br"></i></div>
+        <div data-hf-id="hf-3rgz" class="video-label">单次完整步行 · YOLO 骨架已叠加</div>
+        <div data-hf-id="hf-tb0z" class="dashboard body-dashboard">
+          <div data-hf-id="hf-qbh1" class="instrument" id="body-instrument">
+            <div data-hf-id="hf-pi1f" class="instrument-header"><span data-hf-id="hf-s1dl" class="instrument-title">逐帧姿态骨架</span><span data-hf-id="hf-cjej" class="instrument-unit mono">SOURCE VIDEO · 2D</span></div>
+            <div data-hf-id="hf-xtoq" class="skeleton-grid">
+              <svg data-hf-id="hf-alxb" id="body-skeleton" viewBox="0 0 394 350" aria-label="三维人体骨架示意">
+                <line data-hf-id="hf-2wts" class="axis-line" x1="197" y1="18" x2="197" y2="332" /><line data-hf-id="hf-lrfx" class="axis-line" x1="24" y1="300" x2="370" y2="300" />
+                <g data-hf-id="hf-l3xo" id="bones" /><g data-hf-id="hf-svgs" id="joints" />
+              </svg>
+            </div>
+            <div data-hf-id="hf-elpv" class="depth-readouts">
+              <div data-hf-id="hf-tk0n" class="readout-row"><span data-hf-id="hf-mmis">踝间距</span><strong data-hf-id="hf-5v5g" id="depth-ls" class="mono">0.061</strong><em data-hf-id="hf-cqdy">frame W</em></div>
+              <div data-hf-id="hf-vtef" class="readout-row"><span data-hf-id="hf-fta6">肩部横摆</span><strong data-hf-id="hf-mt3i" id="depth-hip" class="mono">8.3%</strong><em data-hf-id="hf-zdkq">measured</em></div>
+              <div data-hf-id="hf-vf3e" class="readout-row"><span data-hf-id="hf-50nc">躯干倾角</span><strong data-hf-id="hf-aw53" id="depth-la" class="mono">0.0°</strong><em data-hf-id="hf-zrvr">frontal 2D</em></div>
+              <div data-hf-id="hf-v0sd" class="readout-row"><span data-hf-id="hf-zc2y">平均置信度</span><strong data-hf-id="hf-4uqp" id="body-com" class="mono">0.970</strong><em data-hf-id="hf-8p8i">YOLO</em></div>
+            </div>
+          </div>
+          <div data-hf-id="hf-7lht" class="metric-strip">
+            <div data-hf-id="hf-dq4c" class="metric"><div data-hf-id="hf-dgrv" class="metric-label">步行垂直起伏</div><div data-hf-id="hf-c3vi" class="metric-value mono" id="coverage-value">2.4<small data-hf-id="hf-ew4z">% frame</small></div><div data-hf-id="hf-lxwj" class="progress-track"><div data-hf-id="hf-ljud" id="coverage-fill" class="progress-fill"></div></div></div>
+            <div data-hf-id="hf-q6lw" class="metric"><div data-hf-id="hf-68jb" class="metric-label">人体置信度</div><div data-hf-id="hf-dhn0" class="metric-value mono" id="confidence-value">96<small data-hf-id="hf-ibv7">%</small></div><div data-hf-id="hf-drz7" class="progress-track"><div data-hf-id="hf-3zjm" id="confidence-fill" class="progress-fill" style="background:var(--sky)"></div></div></div>
+            <div data-hf-id="hf-ozot" class="metric"><div data-hf-id="hf-gdhe" class="metric-label">关键点有效</div><div data-hf-id="hf-v84t" class="metric-value mono"><span data-hf-id="hf-yhtw" id="joint-count">17</span><small data-hf-id="hf-uln7">/ 17</small></div><div data-hf-id="hf-ddo6" class="progress-track"><div data-hf-id="hf-iqxm" id="joint-fill" class="progress-fill" style="background:var(--amber)"></div></div></div>
+          </div>
+          <div data-hf-id="hf-209e" class="instrument latency-chart">
+            <div data-hf-id="hf-9boh" class="latency-bars">
+              <span data-hf-id="hf-czy6">人体姿态</span><div data-hf-id="hf-2kxp" class="bar-track"><div data-hf-id="hf-trxh" id="lat-body" class="bar-fill" style="background:var(--mint)"></div></div><b data-hf-id="hf-lctt" id="lat-body-value" class="mono">14 ms</b>
+              <span data-hf-id="hf-pqy4">深度投影</span><div data-hf-id="hf-dok1" class="bar-track"><div data-hf-id="hf-bkw5" id="lat-depth" class="bar-fill" style="background:var(--sky)"></div></div><b data-hf-id="hf-l8vs" id="lat-depth-value" class="mono">5 ms</b>
+              <span data-hf-id="hf-2e2s">融合发布</span><div data-hf-id="hf-evh4" class="bar-track"><div data-hf-id="hf-0nft" id="lat-fuse" class="bar-fill" style="background:var(--amber)"></div></div><b data-hf-id="hf-lcwu" id="lat-fuse-value" class="mono">3 ms</b>
+            </div>
+          </div>
+        </div>
+        <div data-hf-id="hf-oio2" class="bottom-rail"><span data-hf-id="hf-xnl6" class="mono">YOLO11N POSE / 10 HZ</span><div data-hf-id="hf-dfnq" class="time-rule"><div data-hf-id="hf-xgvd" id="body-time" class="time-fill"></div></div><span data-hf-id="hf-w64z">骨骼点已压入源画面 · 真机双摄再生成 XYZ</span></div>
+      </section>
+
+      <div data-hf-id="hf-i5le" id="gaze-scene-bg" class="clip scene-bg" data-start="9" data-duration="4" data-track-index="0"></div>
+      <video data-hf-id="hf-5og7" id="gaze-video" class="clip media" src="assets/gaze-once-hold-v5.mp4" data-start="9" data-duration="4" data-track-index="1" muted playsinline preload="auto"></video>
+      <section data-hf-id="hf-whvb" id="gaze" class="clip" data-start="9" data-duration="4" data-track-index="2">
+          <div data-hf-id="hf-3zn2" class="top-rail">
+          <div data-hf-id="hf-llt2" class="rail-title">眼震信号后处理 · 快相 / 慢相分段</div>
+          <div data-hf-id="hf-vol7" class="model-chain"><span data-hf-id="hf-owk6" class="model-dot"></span><b data-hf-id="hf-zm5y">Iris Center Tracking</b><span data-hf-id="hf-xwjm">＋</span><b data-hf-id="hf-5gwv">SwinUNet 接口</b><span data-hf-id="hf-x4yj" class="demo-tag">源视频实测</span></div>
+        </div>
+        <div data-hf-id="hf-9fbe" class="video-frame-overlay"><i data-hf-id="hf-o30r" class="scan-corner scan-tl"></i><i data-hf-id="hf-6ppl" class="scan-corner scan-tr"></i><i data-hf-id="hf-2otd" class="scan-corner scan-bl"></i><i data-hf-id="hf-hjdf" class="scan-corner scan-br"></i></div>
+        <div data-hf-id="hf-uzk8" class="video-label">单次眼动片段 · 播放后定格</div>
+        <div data-hf-id="hf-wnkg" class="dashboard gaze-dashboard">
+          <div data-hf-id="hf-h4oi" class="head-metrics">
+            <div data-hf-id="hf-fxid" class="head-card"><span data-hf-id="hf-3vqq" class="axis">转折点</span><strong data-hf-id="hf-iepa" id="head-yaw" class="mono">7</strong></div>
+            <div data-hf-id="hf-8khl" class="head-card"><span data-hf-id="hf-z2nn" class="axis">相位候选</span><strong data-hf-id="hf-o6l8" id="head-pitch" class="mono">3</strong></div>
+            <div data-hf-id="hf-9reo" class="head-card"><span data-hf-id="hf-i5d4" class="axis">连续性门槛</span><strong data-hf-id="hf-wb9s" id="head-roll" class="mono">≥ 3</strong></div>
+          </div>
+          <div data-hf-id="hf-i1ui" class="instrument chart-card">
+            <div data-hf-id="hf-ivc3" class="instrument-header" style="padding:0 0 8px"><span data-hf-id="hf-47w7" class="instrument-title">0.1 Hz 高通 → 6 Hz 低通 → 600 Hz 重采样 → 拐点斜率</span><div data-hf-id="hf-ovnn" class="legend"><span><i style="background:var(--red)"></i>快相</span><span><i style="background:var(--sky)"></i>慢相</span><span><i style="background:var(--mint)"></i>转折点</span></div></div>
+            <svg data-hf-id="hf-h6sq" id="gaze-chart" viewBox="0 0 776 376" aria-label="眼震后处理与快慢相时间序列">
+              <g data-hf-id="hf-2kza" id="chart-grid" /><line data-hf-id="hf-wsvr" class="chart-zero" x1="28" y1="188" x2="748" y2="188" />
+              <polyline id="gaze-raw-line" class="chart-line-raw" points="" />
+              <polyline data-hf-id="hf-mr2i" id="gaze-h-line" class="chart-line-filtered" points="" />
+              <g id="phase-lines"></g><g id="turning-points"></g>
+              <line data-hf-id="hf-ge2v" id="gaze-playhead" class="chart-playhead" y1="24" y2="352" /><circle data-hf-id="hf-5apn" id="gaze-dot-h" class="chart-dot-h" r="8" />
+            </svg>
+          </div>
+          <div data-hf-id="hf-ohpo" class="analysis-strip">
+            <div class="analysis-note"><span>判定条件 · VertiWisdom 参考链路</span><b>幅度 ≥ 1.34% · 快慢斜率比 1.2–10 · 同向连续 ≥ 3</b></div>
+            <div class="analysis-result"><span>当前片段结论</span><b id="gaze-result">3 组候选 · 未过连续性门</b></div>
+          </div>
+        </div>
+        <div data-hf-id="hf-0nom" class="bottom-rail"><span data-hf-id="hf-p38g" class="mono">IRIS CENTROID · % FRAME WIDTH</span><div data-hf-id="hf-1mkq" class="time-rule"><div data-hf-id="hf-nc5k" id="gaze-time" class="time-fill"></div></div><span data-hf-id="hf-aoa9">红=快相候选 · 蓝=慢相候选 · 非角度/非临床 SPV</span></div>
+      </section>
+
+      <section data-hf-id="hf-zir9" id="fusion" class="clip fusion" data-start="13" data-duration="6" data-track-index="1">
+        <div data-hf-id="hf-y7yw">
+          <div data-hf-id="hf-yggk" class="eyebrow">Synchronized Evidence</div>
+          <h2 data-hf-id="hf-vthz">三条信号，合成一份可复盘的康复记录。</h2>
+          <p data-hf-id="hf-dojc">每个样本同时保存人体关键点与相机空间 XYZ、头部 yaw / pitch / roll、眼动角度、深度覆盖率和模型质量。</p>
+          <div data-hf-id="hf-qsef" class="signal-stack">
+            <div data-hf-id="hf-kual" class="signal-pill" id="pill-body"><i data-hf-id="hf-gtun" style="background:var(--mint)"></i>立体人体 · YOLO + Dual Wide</div>
+            <div data-hf-id="hf-uot2" class="signal-pill" id="pill-head"><i data-hf-id="hf-xikm" style="background:var(--sky)"></i>独立头动 · FCQ MobileNetV3</div>
+            <div data-hf-id="hf-ro82" class="signal-pill" id="pill-eye"><i data-hf-id="hf-ao04" style="background:var(--amber)"></i>眼动方向 · SwinUNet ONNX</div>
+          </div>
+        </div>
+        <div data-hf-id="hf-zlf7" class="fusion-graphic">
+          <svg data-hf-id="hf-o3o2" viewBox="0 0 690 700" aria-hidden="true">
+            <path data-hf-id="hf-sram" id="fusion-path-1" class="fusion-path" stroke="var(--mint)" pathLength="1" d="M36 136 C260 136 270 330 430 340" />
+            <path data-hf-id="hf-1zkf" id="fusion-path-2" class="fusion-path" stroke="var(--sky)" pathLength="1" d="M36 350 C250 350 286 350 430 350" />
+            <path data-hf-id="hf-rhux" id="fusion-path-3" class="fusion-path" stroke="var(--amber)" pathLength="1" d="M36 566 C260 566 270 370 430 360" />
+          </svg>
+          <div data-hf-id="hf-3qy8" class="fusion-node" id="fusion-node"><strong data-hf-id="hf-dz5m" class="mono">30 Hz</strong><span data-hf-id="hf-nm43">Rehab Session JSON</span></div>
+        </div>
+        <div data-hf-id="hf-czeq" class="legal">演示用途，不用于临床诊断。YOLO11n Pose：AGPL-3.0；FCQ Head Pose：CC-BY-NC-4.0；SwinUNet 权重来源与再分发条款需在生产发布前补齐。</div>
+      </section>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // Intro — waterfall entry.
+      const F = 1 / 60;
+      const introItems = ["#intro-w1", "#intro-w2", "#intro-w3"];
+      introItems.forEach((selector, index) => {
+        const at = 0.34 + index * (0.17 - F);
+        tl.set(selector, { opacity: 1, y: 62 - index * 8 }, at);
+        tl.to(selector, { y: 0, duration: 0.18 - index * 0.015, ease: "power4.out" }, at);
+      });
+      tl.fromTo("#intro-sub", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: .55, ease: "power3.out" }, 1.05);
+      tl.fromTo("#intro-orbit", { opacity: 0, scale: .82 }, { opacity: 1, scale: 1, duration: .85, ease: "back.out(1.45)" }, .48);
+      tl.fromTo(["#chip-body", "#chip-head", "#chip-gaze"], { opacity: 0, scale: .72 }, { opacity: 1, scale: 1, duration: .55, stagger: .12, ease: "back.out(1.55)" }, 1.12);
+
+      // Shared split-screen entrances.
+      tl.fromTo("#body .dashboard", { opacity: 0, x: 42 }, { opacity: 1, x: 0, duration: .62, ease: "power3.out" }, 4.12);
+      tl.fromTo("#body-video", { opacity: 0, scale: .985 }, { opacity: 1, scale: 1, duration: .55, ease: "power3.out" }, 4.05);
+      tl.fromTo("#body .top-rail", { opacity: 0, y: -18 }, { opacity: 1, y: 0, duration: .4, ease: "power3.out" }, 4.08);
+      tl.fromTo("#coverage-fill", { scaleX: 0 }, { scaleX: .47, duration: .9, ease: "power3.out" }, 4.7);
+      tl.fromTo("#confidence-fill", { scaleX: 0 }, { scaleX: .78, duration: .9, ease: "power3.out" }, 4.82);
+      tl.fromTo("#joint-fill", { scaleX: 0 }, { scaleX: .82, duration: .9, ease: "power3.out" }, 4.94);
+      tl.fromTo("#lat-body", { scaleX: 0 }, { scaleX: .58, duration: .65, ease: "power3.out" }, 5.05);
+      tl.fromTo("#lat-depth", { scaleX: 0 }, { scaleX: .23, duration: .65, ease: "power3.out" }, 5.15);
+      tl.fromTo("#lat-fuse", { scaleX: 0 }, { scaleX: .14, duration: .65, ease: "power3.out" }, 5.25);
+      tl.fromTo("#body-time", { scaleX: 0 }, { scaleX: 1, duration: 4.4, ease: "none" }, 4.05);
+
+      const signalData = window.REHAB_DEMO_SIGNALS;
+      const bodyFrames = signalData.body.frames;
+      const skeletonBones = signalData.body.bones;
+      const svgNS = "http://www.w3.org/2000/svg";
+      const bonesGroup = document.getElementById("bones");
+      const jointsGroup = document.getElementById("joints");
+      const lineElements = skeletonBones.map(([a,b], index) => {
+        const line = document.createElementNS(svgNS, "line"); line.setAttribute("class", "bone"); line.id = `bone-${index}`; bonesGroup.appendChild(line); return { line, a, b };
+      });
+      const jointElements = Array.from({ length: 17 }, (_, index) => {
+        const circle = document.createElementNS(svgNS, "circle"); circle.setAttribute("r", index === 0 ? "9" : "6"); circle.setAttribute("class", index === 11 || index === 12 ? "joint joint-hot" : "joint"); circle.id = `joint-${index}`; jointsGroup.appendChild(circle); return circle;
+      });
+      const bodyDriver = { p: 0 };
+      function applyBody() {
+        const sampleTime = bodyDriver.p * signalData.body.duration;
+        const frame = bodyFrames[Math.min(bodyFrames.length - 1, Math.round(sampleTime * signalData.body.sampleFps))];
+        const visible = frame.keypoints.filter(point => point[2] >= .25);
+        const xs = visible.map(point => point[0]), ys = visible.map(point => point[1]);
+        const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+        const scale = Math.min(330 / Math.max(maxX - minX, .001), 292 / Math.max(maxY - minY, .001));
+        const usedW = (maxX - minX) * scale, usedH = (maxY - minY) * scale;
+        const points = frame.keypoints.map(point => [32 + (330 - usedW) / 2 + (point[0] - minX) * scale, 28 + (292 - usedH) / 2 + (point[1] - minY) * scale]);
+        lineElements.forEach(({line,a,b}) => { line.setAttribute("x1", points[a][0]); line.setAttribute("y1", points[a][1]); line.setAttribute("x2", points[b][0]); line.setAttribute("y2", points[b][1]); line.style.opacity = frame.keypoints[a][2] >= .25 && frame.keypoints[b][2] >= .25 ? .86 : .12; });
+        jointElements.forEach((circle, index) => { circle.setAttribute("cx", points[index][0]); circle.setAttribute("cy", points[index][1]); circle.style.opacity = frame.keypoints[index][2] >= .25 ? 1 : .18; });
+        document.getElementById("depth-ls").textContent = frame.ankleSeparation.toFixed(3);
+        document.getElementById("depth-hip").textContent = `${(signalData.body.summary.shoulderSway * 100).toFixed(1)}%`;
+        document.getElementById("depth-la").textContent = `${frame.trunkTiltDeg >= 0 ? "+" : ""}${frame.trunkTiltDeg.toFixed(1)}°`;
+        document.getElementById("body-com").textContent = frame.confidence.toFixed(3);
+        document.getElementById("coverage-value").innerHTML = `${(signalData.body.summary.verticalExcursion * 100).toFixed(1)}<small>% frame</small>`;
+        document.getElementById("confidence-value").innerHTML = `${Math.round(frame.confidence * 100)}<small>%</small>`;
+        document.getElementById("joint-count").textContent = frame.visible;
+      }
+      applyBody();
+      tl.to(bodyDriver, { p: 1, duration: 4.4, ease: "none", onUpdate: applyBody }, 4.05);
+
+      // VertiWisdom-style post-processing, still tied to the adopted eye video's time axis.
+      const eyeAnalysis = signalData.eye.analysis;
+      const rawData = eyeAnalysis.frames;
+      const chartData = eyeAnalysis.processed;
+      const X0 = 28, X1 = 748, CY = 188, chartDuration = signalData.eye.duration;
+      const maxEyeX = Math.max(...rawData.map(point => Math.abs(point.raw)), ...chartData.map(point => Math.abs(point.y)), .001);
+      const xAtTime = time => X0 + Math.min(1, Math.max(0, time / chartDuration)) * (X1-X0);
+      const yAt = value => CY - (value / maxEyeX) * 144;
+      document.getElementById("gaze-raw-line").setAttribute("points", rawData.map(d=>`${xAtTime(d.t)},${yAt(d.raw)}`).join(" "));
+      document.getElementById("gaze-h-line").setAttribute("points", chartData.map(d=>`${xAtTime(d.t)},${yAt(d.y)}`).join(" "));
+      const grid = document.getElementById("chart-grid");
+      [44,116,260,332].forEach(y => { const l=document.createElementNS(svgNS,"line"); l.setAttribute("class","chart-grid"); l.setAttribute("x1","28");l.setAttribute("x2","748");l.setAttribute("y1",y);l.setAttribute("y2",y);grid.appendChild(l); });
+      [28,172,316,460,604,748].forEach(x => { const l=document.createElementNS(svgNS,"line"); l.setAttribute("class","chart-grid");l.setAttribute("y1","24");l.setAttribute("y2","352");l.setAttribute("x1",x);l.setAttribute("x2",x);grid.appendChild(l); });
+      const phaseGroup = document.getElementById("phase-lines");
+      eyeAnalysis.phases.forEach(phase => {
+        const line=document.createElementNS(svgNS,"line");
+        line.setAttribute("class", phase.type === "fast" ? "phase-fast" : "phase-slow");
+        line.setAttribute("x1",xAtTime(phase.startT));line.setAttribute("y1",yAt(phase.startY));
+        line.setAttribute("x2",xAtTime(phase.endT));line.setAttribute("y2",yAt(phase.endY));
+        phaseGroup.appendChild(line);
+      });
+      const turningGroup = document.getElementById("turning-points");
+      eyeAnalysis.turningPoints.forEach(point => {
+        const dot=document.createElementNS(svgNS,"circle");dot.setAttribute("class","turning-dot");dot.setAttribute("r","5");
+        dot.setAttribute("cx",xAtTime(point.t));dot.setAttribute("cy",yAt(point.y));turningGroup.appendChild(dot);
+      });
+      document.getElementById("head-yaw").textContent = eyeAnalysis.turningPoints.length;
+      document.getElementById("head-pitch").textContent = eyeAnalysis.summary.candidatePatterns;
+      document.getElementById("head-roll").textContent = `≥ ${eyeAnalysis.thresholds.minimumConsecutive}`;
+      document.getElementById("gaze-result").textContent = eyeAnalysis.summary.hasNystagmus ? `${eyeAnalysis.summary.validPatterns} 组连续 · ${eyeAnalysis.summary.direction}` : `${eyeAnalysis.summary.candidatePatterns} 组候选 · 未过连续性门`;
+      tl.fromTo("#gaze .dashboard", { opacity: 0, x: 42 }, { opacity: 1, x: 0, duration: .42, ease: "power3.out" }, 9.08);
+      tl.fromTo("#gaze-video", { opacity: 0, scale: .985 }, { opacity: 1, scale: 1, duration: .35, ease: "power3.out" }, 9.03);
+      tl.fromTo("#gaze .top-rail", { opacity: 0, y: -18 }, { opacity: 1, y: 0, duration: .32, ease: "power3.out" }, 9.05);
+      tl.fromTo("#gaze-time", { scaleX: 0 }, { scaleX: 1, duration: 1.767, ease: "none" }, 9.05);
+      const gazeDriver = { p: 0 };
+      function applyGaze() {
+        const i = Math.min(chartData.length-1, Math.round(gazeDriver.p*(chartData.length-1)));
+        const h = chartData[i].y;
+        const x = xAtTime(chartData[i].t);
+        const yh = yAt(h);
+        document.getElementById("gaze-playhead").setAttribute("x1",x); document.getElementById("gaze-playhead").setAttribute("x2",x);
+        document.getElementById("gaze-dot-h").setAttribute("cx",x); document.getElementById("gaze-dot-h").setAttribute("cy",yh);
+      }
+      applyGaze();
+      tl.to(gazeDriver, { p: 1, duration: 1.767, ease: "none", onUpdate: applyGaze }, 9.05);
+
+      // Fusion close.
+      tl.fromTo("#fusion .eyebrow", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .38, ease: "power3.out" }, 13.18);
+      tl.fromTo("#fusion h2", { opacity: 0, y: 42 }, { opacity: 1, y: 0, duration: .62, ease: "power3.out" }, 13.34);
+      tl.fromTo("#fusion p", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: .5, ease: "power3.out" }, 13.7);
+      tl.fromTo(["#pill-body", "#pill-head", "#pill-eye"], { opacity: 0, x: -34 }, { opacity: 1, x: 0, duration: .5, stagger: .16, ease: "power3.out" }, 14.2);
+      ["#fusion-path-1", "#fusion-path-2", "#fusion-path-3"].forEach((selector, index) => {
+        const path = document.querySelector(selector); const length = 1; path.style.strokeDasharray = length; path.style.strokeDashoffset = length;
+        tl.to(path, { strokeDashoffset: 0, duration: 1.15, ease: "power2.inOut" }, 14.45 + index*.18);
+      });
+      tl.fromTo("#fusion-node", { opacity: 0, scale: .68 }, { opacity: 1, scale: 1, duration: .72, ease: "back.out(1.65)" }, 15.45);
+      tl.fromTo("#fusion .legal", { opacity: 0 }, { opacity: 1, duration: .5, ease: "power2.out" }, 17.05);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

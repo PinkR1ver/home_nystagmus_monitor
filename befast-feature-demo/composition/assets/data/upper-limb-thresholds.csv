@@ -1,0 +1,8 @@
+metric,threshold,units,direction,gated_by,notes
+elbow,153.4,degrees,below,,minimum elbow angle of the two arms
+asymmetry,13.2,degrees,at_or_above,trunk_suppression;elbow,difference in arm elevation between limbs
+shoulder,0.174,shoulder_widths,at_or_above,,mean shoulder height above the resting baseline
+trunk,0.090,radians,at_or_above,,trunk tilt from vertical
+head,6.4,degrees,at_or_above,trunk_suppression,lateral head tilt relative to the resting baseline
+trunk_suppression,0.072,radians,at_or_above,,above this trunk tilt the asymmetry and head metrics are not scored
+violation_window,250,milliseconds,at_or_above,,a flag is raised once a violation accumulates this long within a repetition

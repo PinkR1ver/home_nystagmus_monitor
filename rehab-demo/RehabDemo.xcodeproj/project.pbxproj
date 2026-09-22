@@ -1,0 +1,374 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AEA23AB4CA8C467BB0F286DD /* RehabDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5E7DC2B28E4B3F830FF0A9 /* RehabDemoApp.swift */; };
+		7E778B7316F04FD29C9E11EE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09372BABE99493BBA5E7EB5 /* ContentView.swift */; };
+		BFA2BA7D3F404E01906E01E7 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA0120AA21A4AAE816F8F31 /* CameraPreviewView.swift */; };
+		C3C5A71A057342F2941E101D /* SignalPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E73F3AD51E4A97A1D5A80D /* SignalPanelView.swift */; };
+		BAE68CFAA81E430E8619A116 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5C18BE5B9D40BBA92F912B /* CameraManager.swift */; };
+		B6859804BF39417B810C421E /* DualSignalCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0BB615237B428D983D84C8 /* DualSignalCapture.swift */; };
+		6ED17506CCB94E8E982134D4 /* VideoSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231370B3474C491DAFDFE343 /* VideoSource.swift */; };
+		0650FDD1A9D54643A4417E1D /* SignalFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D90F9171B304FCD98B38338 /* SignalFrame.swift */; };
+		3A7D197C7D3B45BDB4F0A931 /* YOLOPoseEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B424210DB7764ECAB520878E /* YOLOPoseEstimator.swift */; };
+		E58E01EB8C714BE4B04BBE0D /* YOLO11nPose.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = F55E982B3D984DA895C3E51C /* YOLO11nPose.mlpackage */; };
+		D00100000000000000000001 /* FaceCropGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00200000000000000000001 /* FaceCropGeometry.swift */; };
+		D00100000000000000000002 /* HeadPoseEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00200000000000000000002 /* HeadPoseEstimator.swift */; };
+		D00100000000000000000003 /* ONNXGazeEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00200000000000000000003 /* ONNXGazeEstimator.swift */; };
+		D00100000000000000000004 /* StereoDepthProjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00200000000000000000004 /* StereoDepthProjector.swift */; };
+		D00100000000000000000005 /* HeadPose.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = D00200000000000000000005 /* HeadPose.mlpackage */; };
+		D00100000000000000000006 /* swinunet_web.onnx in Resources */ = {isa = PBXBuildFile; fileRef = D00200000000000000000006 /* swinunet_web.onnx */; };
+		D00100000000000000000007 /* onnxruntime in Frameworks */ = {isa = PBXBuildFile; productRef = D00D00000000000000000001 /* onnxruntime */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		6B5E7DC2B28E4B3F830FF0A9 /* RehabDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RehabDemoApp.swift; sourceTree = "<group>"; };
+		F09372BABE99493BBA5E7EB5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8CA0120AA21A4AAE816F8F31 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		E1E73F3AD51E4A97A1D5A80D /* SignalPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalPanelView.swift; sourceTree = "<group>"; };
+		7F5C18BE5B9D40BBA92F912B /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
+		4C0BB615237B428D983D84C8 /* DualSignalCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualSignalCapture.swift; sourceTree = "<group>"; };
+		231370B3474C491DAFDFE343 /* VideoSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoSource.swift; sourceTree = "<group>"; };
+		4D90F9171B304FCD98B38338 /* SignalFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrame.swift; sourceTree = "<group>"; };
+		A9EC7661649F43B881CA50BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E4B0B2B4CC7A484E97E920DD /* RehabDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RehabDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B424210DB7764ECAB520878E /* YOLOPoseEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YOLOPoseEstimator.swift; sourceTree = "<group>"; };
+		F55E982B3D984DA895C3E51C /* YOLO11nPose.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlmodel; path = YOLO11nPose.mlpackage; sourceTree = "<group>"; };
+		D00200000000000000000001 /* FaceCropGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCropGeometry.swift; sourceTree = "<group>"; };
+		D00200000000000000000002 /* HeadPoseEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadPoseEstimator.swift; sourceTree = "<group>"; };
+		D00200000000000000000003 /* ONNXGazeEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ONNXGazeEstimator.swift; sourceTree = "<group>"; };
+		D00200000000000000000004 /* StereoDepthProjector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StereoDepthProjector.swift; sourceTree = "<group>"; };
+		D00200000000000000000005 /* HeadPose.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlmodel; path = HeadPose.mlpackage; sourceTree = "<group>"; };
+		D00200000000000000000006 /* swinunet_web.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = swinunet_web.onnx; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		B7AA073570A747958753D9E0 = {
+			isa = PBXGroup;
+			children = (
+				669412914ECD452DA978918D /* RehabDemo */,
+				6736CB987A03413DBB94DB91 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		669412914ECD452DA978918D /* RehabDemo */ = {
+			isa = PBXGroup;
+			children = (
+				6B5E7DC2B28E4B3F830FF0A9 /* RehabDemoApp.swift */,
+				D6ED6B6BCCAE476A8587E1BE /* Views */,
+				9BA6084D3417467EBCE3539E /* Services */,
+				9AD8389A11F8457A91635274 /* Models */,
+				F9E9B487FA154415AD54FE9E /* Resources */,
+			);
+			path = RehabDemo;
+			sourceTree = "<group>";
+		};
+		D6ED6B6BCCAE476A8587E1BE /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F09372BABE99493BBA5E7EB5 /* ContentView.swift */,
+				8CA0120AA21A4AAE816F8F31 /* CameraPreviewView.swift */,
+				E1E73F3AD51E4A97A1D5A80D /* SignalPanelView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		9BA6084D3417467EBCE3539E /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				7F5C18BE5B9D40BBA92F912B /* CameraManager.swift */,
+				4C0BB615237B428D983D84C8 /* DualSignalCapture.swift */,
+				231370B3474C491DAFDFE343 /* VideoSource.swift */,
+				B424210DB7764ECAB520878E /* YOLOPoseEstimator.swift */,
+				D00200000000000000000001 /* FaceCropGeometry.swift */,
+				D00200000000000000000002 /* HeadPoseEstimator.swift */,
+				D00200000000000000000003 /* ONNXGazeEstimator.swift */,
+				D00200000000000000000004 /* StereoDepthProjector.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		9AD8389A11F8457A91635274 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				4D90F9171B304FCD98B38338 /* SignalFrame.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		F9E9B487FA154415AD54FE9E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A9EC7661649F43B881CA50BB /* Info.plist */,
+				F55E982B3D984DA895C3E51C /* YOLO11nPose.mlpackage */,
+				D00200000000000000000005 /* HeadPose.mlpackage */,
+				D00200000000000000000006 /* swinunet_web.onnx */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		6736CB987A03413DBB94DB91 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E4B0B2B4CC7A484E97E920DD /* RehabDemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		76ADC80EFBB64991A38903CE /* RehabDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0AEA7793D0B345FCBFCC6A18 /* Build configuration list for PBXNativeTarget "RehabDemo" */;
+			buildPhases = (
+				34B0111053944F8CA91E8B8F /* Sources */,
+				F7C3738737C144B58B5DD481 /* Resources */,
+				AA64ED81E066436AA2BEDF5F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RehabDemo;
+			packageProductDependencies = (
+				D00D00000000000000000001 /* onnxruntime */,
+			);
+			productName = RehabDemo;
+			productReference = E4B0B2B4CC7A484E97E920DD /* RehabDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B1217D71839347458E22C440 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+			};
+			buildConfigurationList = 1E35CEE450884B9D9E3CCC27 /* Build configuration list for PBXProject "RehabDemo" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = B7AA073570A747958753D9E0;
+			productRefGroup = 6736CB987A03413DBB94DB91 /* Products */;
+			packageReferences = (
+				D00C00000000000000000001 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				76ADC80EFBB64991A38903CE /* RehabDemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		34B0111053944F8CA91E8B8F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AEA23AB4CA8C467BB0F286DD /* RehabDemoApp.swift in Sources */,
+				7E778B7316F04FD29C9E11EE /* ContentView.swift in Sources */,
+				BFA2BA7D3F404E01906E01E7 /* CameraPreviewView.swift in Sources */,
+				C3C5A71A057342F2941E101D /* SignalPanelView.swift in Sources */,
+				BAE68CFAA81E430E8619A116 /* CameraManager.swift in Sources */,
+				B6859804BF39417B810C421E /* DualSignalCapture.swift in Sources */,
+				6ED17506CCB94E8E982134D4 /* VideoSource.swift in Sources */,
+				0650FDD1A9D54643A4417E1D /* SignalFrame.swift in Sources */,
+				3A7D197C7D3B45BDB4F0A931 /* YOLOPoseEstimator.swift in Sources */,
+				E58E01EB8C714BE4B04BBE0D /* YOLO11nPose.mlpackage in Sources */,
+				D00100000000000000000001 /* FaceCropGeometry.swift in Sources */,
+				D00100000000000000000002 /* HeadPoseEstimator.swift in Sources */,
+				D00100000000000000000003 /* ONNXGazeEstimator.swift in Sources */,
+				D00100000000000000000004 /* StereoDepthProjector.swift in Sources */,
+				D00100000000000000000005 /* HeadPose.mlpackage in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA64ED81E066436AA2BEDF5F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D00100000000000000000007 /* onnxruntime in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F7C3738737C144B58B5DD481 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D00100000000000000000006 /* swinunet_web.onnx in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B19E8657FAE14FB594CE0594 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F20D660E64A24F6EA4D14262 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		0845C93D3513416CAEC524B4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 949ZMC2D2T;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RehabDemo/Resources/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kk.rehabdemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9BC9069165324718B716877E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 949ZMC2D2T;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RehabDemo/Resources/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kk.rehabdemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1E35CEE450884B9D9E3CCC27 /* Build configuration list for PBXProject "RehabDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B19E8657FAE14FB594CE0594 /* Debug */,
+				F20D660E64A24F6EA4D14262 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0AEA7793D0B345FCBFCC6A18 /* Build configuration list for PBXNativeTarget "RehabDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0845C93D3513416CAEC524B4 /* Debug */,
+				9BC9069165324718B716877E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D00C00000000000000000001 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/onnxruntime-swift-package-manager.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.24.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D00D00000000000000000001 /* onnxruntime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D00C00000000000000000001 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */;
+			productName = onnxruntime;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+	};
+	rootObject = B1217D71839347458E22C440 /* Project object */;
+}

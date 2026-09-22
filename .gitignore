@@ -34,3 +34,12 @@ __pycache__/
 
 # Local tmp scripts (not committed)
 /tmp/
+
+# Machine-local state excluded from the phase archive
+**/xcuserdata/
+/selfIdentity.plist
+**/.hyperframes/
+**/.thumbnails/
+
+# Apple dependency build products
+/iphone-app/Pods/

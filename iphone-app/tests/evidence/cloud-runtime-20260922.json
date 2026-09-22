@@ -1,0 +1,10 @@
+{
+  "archiveTombstoneMerged": true,
+  "downloadSHA256Verified": true,
+  "idempotentRetry": true,
+  "keychainRestored": true,
+  "passed": true,
+  "queueRestored": true,
+  "unauthorizedRejected": true,
+  "uploadedAndPulled": true
+}

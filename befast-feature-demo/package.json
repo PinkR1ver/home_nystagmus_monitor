@@ -1,0 +1,12 @@
+{
+  "name": "befast-feature-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 3004 --bind 0.0.0.0 --directory ./composition",
+    "present": "npx --yes hyperframes@0.8.27 present ./composition",
+    "studio": "npx --yes hyperframes@0.8.27 preview ./composition --background",
+    "check": "npx --yes hyperframes@0.8.27 check ./composition",
+    "publish": "npx --yes hyperframes@0.8.27 publish"
+  }
+}

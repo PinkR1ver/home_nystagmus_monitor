@@ -22,20 +22,23 @@ enum AnalysisError: LocalizedError {
 }
 
 struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
+    var fixedRegion: EyeRegion? = nil
     private let gazeEstimator: GazeEstimator = ONNXRuntimeGazeEstimator()
 
     func analyze(videoURL: URL, source: CaptureSource) async throws -> AnalysisResult {
         let asset = AVURLAsset(url: videoURL)
         let duration = try await asset.load(.duration).seconds
-        guard duration.isFinite, duration > 0 else {
+        guard duration.isFinite, (3...120).contains(duration) else {
             throw AnalysisError.unreadableVideo
         }
 
-        let fileSize = (try? FileManager.default.attributesOfItem(atPath: videoURL.path)[.size] as? NSNumber)?.doubleValue ?? 0
         let modelSeries = try makeModelAngleSeries(videoURL: videoURL, duration: duration)
-        let durationQuality = min(1.0, duration / 12.0)
-        let fileQuality = min(1.0, max(0.25, log10(max(fileSize, 1)) / 8.0))
-        let quality = min(0.98, max(0.08, modelSeries.successRate * 0.62 + durationQuality * 0.23 + fileQuality * 0.15))
+        let quality = modelSeries.successRate
+        let rawSamples = modelSeries.pitch.indices.map {i in EyeRawSample(timeMs:i*1000/30,yawDeg:modelSeries.yaw[i].isFinite ? modelSeries.yaw[i]:nil,pitchDeg:modelSeries.pitch[i].isFinite ? modelSeries.pitch[i]:nil)}
+        if let reason=EyeQuality.unavailable(rawSamples) {
+            let empty=AxisSignalSummary(title:"未分析",present:false,directionLabel:"无法分析",patternCount:0,spv:0,cvPercent:0,amplitude:0,frequencyHz:0,samples:[],patterns:[])
+            return AnalysisResult(source:source,fileName:videoURL.lastPathComponent,durationSeconds:duration,finding:.inconclusive,confidence:0,beatFrequencyHz:0,peakVelocity:0,qualityScore:quality,modelName:gazeEstimator.modelName,summary:"无法分析："+reason,samples:[],horizontalAxis:empty,verticalAxis:empty,processingSteps:["固定单眼 ROI","原始图像质量检查","30 Hz ONNX","质量门限未通过，未执行快慢相判断"],eyePreviewFrameURLs:[],eyeEvidenceFrames:[],evidenceVideoURL:videoURL,rawSamples:rawSamples,unavailableReason:reason,fixedRegion:fixedRegion)
+        }
         let processor = SignalProcessor(fps: modelSeries.fps)
         let pitch = processor.process(modelSeries.pitch)
         let yaw = processor.process(modelSeries.yaw)
@@ -47,7 +50,7 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
         let horizontalSummary = makeAxisSummary(title: "Horizontal yaw", detection: detection.horizontal, samples: yaw)
         let verticalSummary = makeAxisSummary(title: "Vertical pitch", detection: detection.vertical, samples: pitch)
         let evidenceFrames = generateEyeEvidenceFrames(videoURL: videoURL, duration: duration, detection: detection)
-        let evidenceVideoURL = copyEvidenceVideo(from: videoURL)
+        let evidenceVideoURL = videoURL
 
         let finding: NystagmusFinding
         if quality < 0.48 {
@@ -83,7 +86,9 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
             ],
             eyePreviewFrameURLs: evidenceFrames.map(\.cropFrameURL),
             eyeEvidenceFrames: evidenceFrames,
-            evidenceVideoURL: evidenceVideoURL
+            evidenceVideoURL: evidenceVideoURL,
+            rawSamples: rawSamples,
+            fixedRegion: fixedRegion
         )
     }
 
@@ -100,13 +105,13 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
 
     private func makeModelAngleSeries(videoURL: URL, duration: Double) throws -> (pitch: [Double], yaw: [Double], fps: Double, successRate: Double) {
         let fps = 30.0
-        let frameCount = max(12, min(420, Int(duration * fps)))
+        let frameCount = max(1, Int(min(duration, 120) * fps))
         let asset = AVURLAsset(url: videoURL)
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
         generator.requestedTimeToleranceBefore = .zero
         generator.requestedTimeToleranceAfter = CMTime(seconds: 0.02, preferredTimescale: 600)
-        let cropper = EyeROICropper()
+        let cropper = EyeROICropper(fixedRegion: fixedRegion)
 
         var pitch = [Double]()
         var yaw = [Double]()
@@ -115,6 +120,7 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
         var successCount = 0
 
         for index in 0..<frameCount {
+            try Task.checkCancellation()
             let seconds = Double(index) / fps
             let time = CMTime(seconds: min(seconds, max(0, duration - 0.001)), preferredTimescale: 600)
             guard let image = try? generator.copyCGImage(at: time, actualTime: nil),
@@ -132,26 +138,17 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
             successCount += 1
         }
 
-        guard successCount > 0 else {
-            throw AnalysisError.noModelSamples
-        }
 
         return (pitch, yaw, fps, Double(successCount) / Double(frameCount))
     }
 
     private func makeSamples(duration: Double, pitch: [Double], yaw: [Double]) -> [GazeSample] {
-        let count = min(72, min(pitch.count, yaw.count))
+        let count = min(pitch.count, yaw.count)
         guard count > 1 else { return [] }
-        let step = max(1, pitch.count / count)
-        return stride(from: 0, to: min(pitch.count, yaw.count), by: step).prefix(count).enumerated().map { pair in
-            let displayIndex = pair.offset
-            let sourceIndex = pair.element
-            let progress = Double(displayIndex) / Double(count - 1)
-            return GazeSample(
-                time: progress * duration,
-                horizontal: (yaw[sourceIndex] / 7.0).clamped(to: -1.0...1.0),
-                vertical: (pitch[sourceIndex] / 7.0).clamped(to: -1.0...1.0)
-            )
+        // SignalProcessor resamples at 600 Hz; keep true units and timestamps.
+        let step = max(1, Int(600 / 30))
+        return stride(from: 0, to: count, by: step).map { index in
+            GazeSample(time: Double(index) / 600, horizontal: yaw[index], vertical: pitch[index])
         }
     }
 
@@ -196,7 +193,7 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
         generator.appliesPreferredTrackTransform = true
         generator.requestedTimeToleranceBefore = .zero
         generator.requestedTimeToleranceAfter = CMTime(seconds: 0.04, preferredTimescale: 600)
-        let cropper = EyeROICropper()
+        let cropper = EyeROICropper(fixedRegion: fixedRegion)
 
         let frameCount = 18
         let outputDir = FileManager.default.temporaryDirectory
@@ -257,11 +254,13 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
 }
 
 enum EyeROIMode {
+    case manualFixed
     case visionFaceLandmark
     case opticalSingleEyeFallback
 
     var label: String {
         switch self {
+        case .manualFixed: return "Manual fixed single-eye ROI"
         case .visionFaceLandmark:
             return "Vision face landmark"
         case .opticalSingleEyeFallback:
@@ -277,7 +276,13 @@ struct EyeROICrop {
 }
 
 struct EyeROICropper {
+    var fixedRegion: EyeRegion? = nil
     func crop(from image: CGImage) -> EyeROICrop? {
+        if let fixedRegion {
+            guard let rect = fixedRegion.pixelRect(width: image.width, height: image.height),
+                  let cropped = image.cropping(to: rect) else { return nil }
+            return EyeROICrop(image: cropped, mode: .manualFixed, normalizedRect: fixedRegion.normalizedRect)
+        }
         if let rect = visionEyeRect(in: image), let cropped = image.cropping(to: rect) {
             return EyeROICrop(image: cropped, mode: .visionFaceLandmark, normalizedRect: normalized(rect, image: image))
         }

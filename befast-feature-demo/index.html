@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BEFAST 特征提取文献演示</title>
+    <script src="https://unpkg.com/@hyperframes/player@0.8.27/dist/index.global.js"></script>
+    <script src="https://unpkg.com/@hyperframes/slideshow@0.8.27/dist/index.global.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #162a3a;
+      }
+      hyperframes-slideshow { display: block; width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <hyperframes-slideshow src="./composition/index.html" manifest-id="slideshow-manifest"></hyperframes-slideshow>
+    <script type="application/json" id="slideshow-manifest">
+      {
+        "title": "BEFAST 特征提取文献演示",
+        "slides": [
+          {"id":"map","title":"五条特征流水线","start":0,"duration":6},
+          {"id":"availability","title":"复现边界","start":6,"duration":6},
+          {"id":"face","title":"Face：对齐与 HOG","start":12,"duration":6},
+          {"id":"aeye","title":"Eye：递归运动滤波","start":18,"duration":6},
+          {"id":"eyephone","title":"Eye：虹膜减鼻尖","start":24,"duration":6},
+          {"id":"arm","title":"Arm：五项几何特征","start":30,"duration":6},
+          {"id":"balance","title":"Balance：骨架时序","start":36,"duration":6},
+          {"id":"speech","title":"Speech：wav2vec2 分层表征","start":42,"duration":6},
+          {"id":"evidence","title":"证据优先的 Demo 架构","start":48,"duration":6}
+        ],
+        "notes": {
+          "map":"这不是五个疾病分类器，而是五条可观察、可解释的特征链路。",
+          "availability":"绿色代表公开资产可直接运行；橙色代表按论文方法实现；灰色代表仅做代理展示。",
+          "face":"原论文先对齐面部，再提取 HOG，而非直接以 CNN 给出脑卒中结论。",
+          "aeye":"此页复现论文公开的递归滤波公式；右侧分类指标来自论文，不是本地推理结果。",
+          "eyephone":"虹膜坐标减去鼻尖坐标，可抵消相机画面中的整体头部平移。",
+          "arm":"这里运行的是作者公开的 913 条重复动作数据和阈值定义。",
+          "balance":"骨架曲线来自本地姿态估计，LSTM 结构与 97.3% 指标只按论文标注。",
+          "speech":"本地真实运行 wav2vec2-base；输入是合成语音，不含患者数据。",
+          "evidence":"产品应保存特征证据与来源级别，而不是只显示一个无法追溯的风险分数。"
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,304 @@
+:root {
+  color-scheme: light;
+  --paper: #f7f5ef;
+  --ink: #171713;
+  --muted: #6f6b5f;
+  --line: #d9d2c3;
+  --panel: #fffdf7;
+  --accent: #2f6f6a;
+  --accent-strong: #174f4a;
+  --danger: #9b4737;
+  --shadow: 0 18px 45px rgb(43 39 28 / 12%);
+  font-family: "Instrument Sans", "Noto Sans SC", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(115deg, rgb(247 245 239 / 94%), rgb(231 238 232 / 84%)),
+    radial-gradient(circle at 12% 12%, rgb(151 172 151 / 20%), transparent 34%);
+  color: var(--ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: clamp(18px, 3vw, 36px);
+  padding: clamp(16px, 3vw, 40px);
+}
+
+.stage-panel,
+.control-panel {
+  min-width: 0;
+}
+
+.stage-panel {
+  display: grid;
+  grid-template-rows: auto minmax(420px, 1fr);
+  gap: 18px;
+}
+
+.top-strip {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 6vw, 6.6rem);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 1.65rem;
+  font-weight: 700;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  min-width: 92px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgb(255 253 247 / 80%);
+  color: var(--muted);
+  text-align: center;
+  font-weight: 700;
+}
+
+.status-pill.is-running {
+  border-color: color-mix(in oklch, var(--accent) 55%, var(--line));
+  background: color-mix(in oklch, var(--accent) 14%, white);
+  color: var(--accent-strong);
+}
+
+.stimulus-frame {
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f1efe6;
+  box-shadow: var(--shadow);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.control-panel {
+  align-self: stretch;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgb(255 253 247 / 88%);
+  box-shadow: var(--shadow);
+}
+
+.panel-heading {
+  margin-bottom: 24px;
+}
+
+.control-block {
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+
+.control-block label,
+.segmented legend {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 12px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+output {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 18px 0 22px;
+  padding: 18px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.segmented legend {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+
+.segmented label {
+  min-width: 0;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented span {
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.segmented input:checked + span {
+  border-color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 12%, white);
+  color: var(--accent-strong);
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 10px;
+}
+
+button {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f9f5ec;
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklch, var(--accent) 44%, var(--line));
+}
+
+button:focus-visible,
+input:focus-visible + span,
+input[type="range"]:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--accent) 32%, transparent);
+  outline-offset: 3px;
+}
+
+button.primary {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  color: #f7f5ef;
+}
+
+.clinical-note {
+  margin: 20px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--danger);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+body:has(.stimulus-frame:fullscreen) {
+  background: #000;
+}
+
+.stimulus-frame:fullscreen {
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+}
+
+@media (max-width: 920px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-panel {
+    grid-template-rows: auto minmax(340px, 54vh);
+  }
+}
+
+@media (max-width: 560px) {
+  .top-strip {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .control-row {
+    grid-template-columns: 1fr;
+  }
+
+  output {
+    text-align: left;
+  }
+
+  .segmented,
+  .button-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
