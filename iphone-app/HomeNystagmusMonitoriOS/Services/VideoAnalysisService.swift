@@ -28,15 +28,17 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
     func analyze(videoURL: URL, source: CaptureSource) async throws -> AnalysisResult {
         let asset = AVURLAsset(url: videoURL)
         let duration = try await asset.load(.duration).seconds
-        guard duration.isFinite, duration > 0 else {
+        guard duration.isFinite, (3...120).contains(duration) else {
             throw AnalysisError.unreadableVideo
         }
 
-        let fileSize = (try? FileManager.default.attributesOfItem(atPath: videoURL.path)[.size] as? NSNumber)?.doubleValue ?? 0
         let modelSeries = try makeModelAngleSeries(videoURL: videoURL, duration: duration)
-        let durationQuality = min(1.0, duration / 12.0)
-        let fileQuality = min(1.0, max(0.25, log10(max(fileSize, 1)) / 8.0))
-        let quality = min(0.98, max(0.08, modelSeries.successRate * 0.62 + durationQuality * 0.23 + fileQuality * 0.15))
+        let quality = modelSeries.successRate
+        let rawSamples = modelSeries.pitch.indices.map {i in EyeRawSample(timeMs:i*1000/30,yawDeg:modelSeries.yaw[i].isFinite ? modelSeries.yaw[i]:nil,pitchDeg:modelSeries.pitch[i].isFinite ? modelSeries.pitch[i]:nil)}
+        if let reason=EyeQuality.unavailable(rawSamples) {
+            let empty=AxisSignalSummary(title:"未分析",present:false,directionLabel:"无法分析",patternCount:0,spv:0,cvPercent:0,amplitude:0,frequencyHz:0,samples:[],patterns:[])
+            return AnalysisResult(source:source,fileName:videoURL.lastPathComponent,durationSeconds:duration,finding:.inconclusive,confidence:0,beatFrequencyHz:0,peakVelocity:0,qualityScore:quality,modelName:gazeEstimator.modelName,summary:"无法分析："+reason,samples:[],horizontalAxis:empty,verticalAxis:empty,processingSteps:["固定单眼 ROI","原始图像质量检查","30 Hz ONNX","质量门限未通过，未执行快慢相判断"],eyePreviewFrameURLs:[],eyeEvidenceFrames:[],evidenceVideoURL:videoURL,rawSamples:rawSamples,unavailableReason:reason,fixedRegion:fixedRegion)
+        }
         let processor = SignalProcessor(fps: modelSeries.fps)
         let pitch = processor.process(modelSeries.pitch)
         let yaw = processor.process(modelSeries.yaw)
@@ -48,7 +50,7 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
         let horizontalSummary = makeAxisSummary(title: "Horizontal yaw", detection: detection.horizontal, samples: yaw)
         let verticalSummary = makeAxisSummary(title: "Vertical pitch", detection: detection.vertical, samples: pitch)
         let evidenceFrames = generateEyeEvidenceFrames(videoURL: videoURL, duration: duration, detection: detection)
-        let evidenceVideoURL = copyEvidenceVideo(from: videoURL)
+        let evidenceVideoURL = videoURL
 
         let finding: NystagmusFinding
         if quality < 0.48 {
@@ -84,7 +86,9 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
             ],
             eyePreviewFrameURLs: evidenceFrames.map(\.cropFrameURL),
             eyeEvidenceFrames: evidenceFrames,
-            evidenceVideoURL: evidenceVideoURL
+            evidenceVideoURL: evidenceVideoURL,
+            rawSamples: rawSamples,
+            fixedRegion: fixedRegion
         )
     }
 
@@ -116,6 +120,7 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
         var successCount = 0
 
         for index in 0..<frameCount {
+            try Task.checkCancellation()
             let seconds = Double(index) / fps
             let time = CMTime(seconds: min(seconds, max(0, duration - 0.001)), preferredTimescale: 600)
             guard let image = try? generator.copyCGImage(at: time, actualTime: nil),
@@ -133,9 +138,6 @@ struct PrototypeNystagmusAnalysisEngine: NystagmusAnalysisEngine {
             successCount += 1
         }
 
-        guard successCount > 0 else {
-            throw AnalysisError.noModelSamples
-        }
 
         return (pitch, yaw, fps, Double(successCount) / Double(frameCount))
     }

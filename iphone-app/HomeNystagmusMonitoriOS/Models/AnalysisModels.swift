@@ -79,6 +79,9 @@ struct AnalysisResult: Codable, Equatable {
     let eyePreviewFrameURLs: [URL]
     let eyeEvidenceFrames: [EyeEvidenceFrame]
     let evidenceVideoURL: URL?
+    var rawSamples: [EyeRawSample]? = nil
+    var unavailableReason: String? = nil
+    var fixedRegion: EyeRegion? = nil
 
     var durationText: String {
         let seconds = Int(durationSeconds.rounded())

@@ -37,10 +37,11 @@ enum FixedCameraLens: Int, CaseIterable {
 }
 
 struct FixedLensCameraRecorder: UIViewControllerRepresentable {
+    var bodyGuide: String? = nil
     let onComplete: (URL?) -> Void
 
     func makeUIViewController(context: Context) -> FixedLensCameraViewController {
-        FixedLensCameraViewController(captureMode: .fixedLens, onComplete: onComplete)
+        FixedLensCameraViewController(captureMode: .fixedLens, bodyGuide: bodyGuide, onComplete: onComplete)
     }
 
     func updateUIViewController(_ uiViewController: FixedLensCameraViewController, context: Context) {}
@@ -87,6 +88,14 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
     private let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "hnm.fixed-lens-camera.session")
     private let movieOutput = AVCaptureMovieFileOutput()
+    private let bodyGuide: String?
+    private let bodyOutput = AVCaptureVideoDataOutput()
+    private let liveBody = LiveBodyFeedback()
+    private let bodyOverlay = LiveBodyOverlay()
+    private var completionSent = false
+    private var discardRecording = false
+    private var recordingTimer: Timer?
+    private var recordingStart: Date?
     private let previewView = UIView()
     private let lensControl = UISegmentedControl(items: FixedCameraLens.allCases.map(\.label))
     private let recordButton = UIButton(type: .system)
@@ -98,8 +107,9 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
     private var isConfigured = false
     private var captureEventInteraction: UIInteraction?
 
-    fileprivate init(captureMode: CaptureMode, onComplete: @escaping (URL?) -> Void) {
+    fileprivate init(captureMode: CaptureMode, bodyGuide: String? = nil, onComplete: @escaping (URL?) -> Void) {
         self.captureMode = captureMode
+        self.bodyGuide = bodyGuide
         self.onComplete = onComplete
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
@@ -121,6 +131,7 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         previewLayer?.frame = previewView.bounds
+        bodyOverlay.frame = view.bounds
     }
 
     private func configurePreview() {
@@ -138,7 +149,7 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
 
         lensControl.translatesAutoresizingMaskIntoConstraints = false
         lensControl.selectedSegmentIndex = selectedLens.rawValue
-        lensControl.selectedSegmentTintColor = .systemCyan
+        lensControl.selectedSegmentTintColor = UIColor(red:1,green:36/255,blue:66/255,alpha:1)
         lensControl.addTarget(self, action: #selector(lensChanged), for: .valueChanged)
         lensControl.isHidden = isExternalUSB
 
@@ -168,6 +179,14 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
         statusLabel.numberOfLines = 2
 
         view.addSubview(previewView)
+        if bodyGuide != nil {
+            view.addSubview(bodyOverlay)
+            liveBody.onFrame = { [weak self] frame,size,latency in
+                guard let self,!self.completionSent else{return}
+                self.bodyOverlay.update(frame,size:size,latency:latency)
+            }
+            liveBody.onError = { [weak self] message in self?.bodyOverlay.showError(message) }
+        }
         view.addSubview(lensControl)
         view.addSubview(recordButton)
         view.addSubview(cancelButton)
@@ -277,6 +296,17 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
                 if !self.session.outputs.contains(self.movieOutput), self.session.canAddOutput(self.movieOutput) {
                     self.session.addOutput(self.movieOutput)
                 }
+                self.movieOutput.maxRecordedDuration = CMTime(seconds:115,preferredTimescale:600)
+                if let connection=self.movieOutput.connection(with:.video),connection.isVideoRotationAngleSupported(90) {connection.videoRotationAngle=90}
+                if self.bodyGuide != nil && !self.session.outputs.contains(self.bodyOutput) {
+                    self.bodyOutput.alwaysDiscardsLateVideoFrames=true
+                    self.bodyOutput.videoSettings=[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32BGRA]
+                    if self.session.canAddOutput(self.bodyOutput) {
+                        self.session.addOutput(self.bodyOutput)
+                        self.bodyOutput.setSampleBufferDelegate(self.liveBody,queue:self.liveBody.queue)
+                        if let connection=self.bodyOutput.connection(with:.video),connection.isVideoRotationAngleSupported(90) {connection.videoRotationAngle=90}
+                    }
+                }
                 if self.isExternalUSB {
                     self.movieOutput.connection(with: .video)?.preferredVideoStabilizationMode = .off
                     self.movieOutput.movieFragmentInterval = CMTime(seconds: 1, preferredTimescale: 600)
@@ -292,7 +322,7 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
                 }
 
                 DispatchQueue.main.async {
-                    self.statusLabel.text = "\(selection.status)\nTap preview or Space."
+                    self.statusLabel.text = self.bodyGuide.map {"\($0) · 全身与双脚入镜\n点击录制按钮开始，最长 115 秒"} ?? "固定单眼和头部，保持照明稳定\n点击录制按钮开始，保存后框选并分析"
                 }
             } catch {
                 self.session.commitConfiguration()
@@ -418,14 +448,21 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
             return
         }
         guard isConfigured else {
-            statusLabel.text = "Camera is not ready."
+            statusLabel.text = "相机尚未准备好"
             return
         }
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("hnm-\(UUID().uuidString)")
             .appendingPathExtension("mov")
         outputURL = url
+        discardRecording=false
+        recordingStart=Date()
         movieOutput.startRecording(to: url, recordingDelegate: self)
+        lensControl.isEnabled=false
+        recordingTimer=Timer.scheduledTimer(withTimeInterval:1,repeats:true) { [weak self] _ in
+            guard let self,let start=self.recordingStart else{return}
+            self.statusLabel.text="正在录制 \(Int(Date().timeIntervalSince(start))) / 115 秒\n点击录制按钮停止并保存"
+        }
         recordButton.tintColor = .white
         let source: String
         if case .externalUSB(let settings) = captureMode {
@@ -433,37 +470,36 @@ final class FixedLensCameraViewController: UIViewController, AVCaptureFileOutput
         } else {
             source = selectedLens.displayName
         }
-        statusLabel.text = "Recording with \(source)\nTap preview, Space, or Camera Control to stop."
+        statusLabel.text = "正在录制 · \(source)\n点击录制按钮停止并保存"
     }
 
     @objc private func cancel() {
-        if movieOutput.isRecording {
-            movieOutput.stopRecording()
-        }
+        discardRecording=true
+        if movieOutput.isRecording {movieOutput.stopRecording()}
+        else {finish(nil)}
+    }
+    private func finish(_ url:URL?) {
+        guard !completionSent else{return}
+        completionSent=true;recordingTimer?.invalidate();recordingTimer=nil
         sessionQueue.async { [weak self] in
+            self?.bodyOutput.setSampleBufferDelegate(nil,queue:nil)
             self?.session.stopRunning()
         }
-        dismiss(animated: true) { [onComplete] in
-            onComplete(nil)
+        dismiss(animated:true) { [onComplete] in onComplete(url) }
+    }
+    override func viewDidDisappear(_ animated:Bool) {
+        super.viewDidDisappear(animated)
+        recordingTimer?.invalidate();recordingTimer=nil
+        sessionQueue.async { [weak self] in self?.session.stopRunning() }
+    }
+    func fileOutput(_ output:AVCaptureFileOutput,didFinishRecordingTo outputFileURL:URL,from connections:[AVCaptureConnection],error:Error?) {
+        DispatchQueue.main.async { [self] in
+            let successful=error == nil || ((error as NSError?)?.userInfo[AVErrorRecordingSuccessfullyFinishedKey] as? Bool == true)
+            if discardRecording || !successful {try? FileManager.default.removeItem(at:outputFileURL);finish(nil)}
+            else {finish(outputFileURL)}
         }
     }
 
-    func fileOutput(
-        _ output: AVCaptureFileOutput,
-        didFinishRecordingTo outputFileURL: URL,
-        from connections: [AVCaptureConnection],
-        error: Error?
-    ) {
-        sessionQueue.async { [weak self] in
-            self?.session.stopRunning()
-        }
-        DispatchQueue.main.async { [self] in
-            self.recordButton.tintColor = .systemRed
-            self.dismiss(animated: true) { [onComplete] in
-                onComplete(error == nil ? outputFileURL : nil)
-            }
-        }
-    }
 }
 
 private enum CameraCaptureError: LocalizedError {

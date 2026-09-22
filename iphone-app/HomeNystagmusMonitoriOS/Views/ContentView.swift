@@ -127,6 +127,8 @@ struct ContentView: View {
     @State private var selected: MotionRecord?
     @State private var saved = false
     @State private var roiRecord: MotionRecord?
+    @State private var reportArchive: URL?
+    @State private var exporting = false
     @State private var weight = UserDefaults.standard.string(forKey: "motion.weight") ?? ""
     @State private var height = UserDefaults.standard.string(forKey: "motion.height") ?? ""
     @State private var sex = UserDefaults.standard.string(forKey: "motion.sex") ?? "男性参数"
@@ -184,7 +186,7 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $camera) {
-            FixedLensCameraRecorder { url in
+            FixedLensCameraRecorder(bodyGuide: eyeCapture ? nil : mode) { url in
                 camera = false
                 if let url { accept(url, source: .camera) }
             }.ignoresSafeArea()
@@ -221,7 +223,10 @@ struct ContentView: View {
         .alert("提示", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
             Button("知道了") { error = nil }
         } message: { Text(error ?? "") }
-        .onAppear {
+        .onAppear(perform: handleAppearance)
+    }
+
+    private func handleAppearance() {
             error = library.loadError
             if let scope=cloudSync.scope {do{try library.mergeCloud(cloudSync.state.records,scope:scope)}catch{self.error=error.localizedDescription}}
             #if DEBUG
@@ -235,12 +240,27 @@ struct ContentView: View {
                 accept(fixture, source: .importedVideo)
                 if let record = selected { analyzeBody(record) }
             }
+            if ProcessInfo.processInfo.environment["MOTION_SMOKE_EYE"] == "1", !smokeStarted {
+                smokeStarted = true
+                let fixture = library.directory.appendingPathComponent("eye-runtime-input.mp4")
+                var record: MotionRecord?
+                do {
+                    eyeCapture = true
+                    record = try library.importVideo(fixture, title: "眼动检测", source: .importedVideo)
+                    if var record {
+                        record.eyeRegion = EyeRegion(x: 0.05, y: 0.35, width: 0.5, height: 0.45)
+                        try library.update(record)
+                        selected = record
+                        do { record.message = "眼动验收：开始 ONNX 分析"; try library.update(record) } catch { self.error = error.localizedDescription }
+                        analyze(record, source: .importedVideo)
+                    }
+                } catch { self.error = "眼动运行验收准备失败：\(error.localizedDescription)" }
+            }
             if let route = ProcessInfo.processInfo.environment["MOTION_PREVIEW_PAGE"] {
                 if ["eye", "cloud", "imu"].contains(route) { page = route }
                 else if ["记录", "我的"].contains(route) { tab = route }
             }
             #endif
-        }
     }
 
     private func heading(_ title: String, _ subtitle: String) -> some View {
@@ -347,7 +367,7 @@ struct ContentView: View {
         }
     }
     private func recordRow(_ record: MotionRecord) -> some View {
-        Button { selected = record; tab = "记录" } label: {
+        Button { reportArchive=nil; selected = record; tab = "记录" } label: {
             HStack(spacing: 14) {
                 Image(systemName: record.imuSession != nil ? "waveform.path" : record.title == "眼动检测" ? "eye" : "figure.walk")
                     .font(.title2).foregroundStyle(MotionStyle.red).frame(width: 48, height: 48)
@@ -601,11 +621,62 @@ struct ContentView: View {
                 }
             }
             }
+            action(exporting ? "正在打包…":"导出报告与原始数据 ZIP",outlined:true) {exportRecord(record)}.disabled(exporting)
+            if let reportArchive {ShareLink("分享导出文件",item:reportArchive)}
             if !record.videoName.isEmpty {
             ShareLink(item: library.directory.appendingPathComponent(record.videoName)) {
                 Label(record.imuSession == nil && record.cloudRecord?["task_type"].string != "imu" ? "导出原始视频" : "导出原始 IMU CSV", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity).padding(16)
             }
             }
+        }
+    }
+    private func exportRecord(_ record:MotionRecord) {
+        exporting=true;reportArchive=nil
+        let directory=library.directory
+        Task {
+            do {
+                let output=try await Task.detached(priority:.userInitiated) {
+                    let staging=FileManager.default.temporaryDirectory.appendingPathComponent("motion-export-"+UUID().uuidString,isDirectory:true)
+                    try FileManager.default.createDirectory(at:staging,withIntermediateDirectories:true)
+                    defer{try? FileManager.default.removeItem(at:staging)}
+                    var files:[String:URL]=[:]
+                    func write(_ name:String,_ data:Data)throws {let url=staging.appendingPathComponent(name);try data.write(to:url,options:.atomic);files[name]=url}
+                    let context=CloudJSON.object(["recordId":.string(record.id.uuidString),"createdAt":.string(ISO8601DateFormatter().string(from:record.createdAt)),"source":.string(record.source.rawValue),"subject":try record.subject.map{try .wrap($0)} ?? .null,"eyeRegion":try record.eyeRegion.map{try .wrap($0)} ?? .null,"message":.string(record.message)])
+                    try write("test_context.json",context.data())
+                    if let body=record.bodyReport {
+                        try write("report.json",JSONEncoder().encode(body))
+                        if let motion=body.motion {
+                            var rows="key,label,unit,group,value,reason,n\n"
+                            for metric in motion.metrics {
+                                rows += [metric.key,metric.label,metric.unit,metric.group,metric.value.map{String($0)} ?? "",metric.reason ?? "",String(metric.n)].map(MotionArchive.csvCell).joined(separator:",")+"\n"
+                            }
+                            try write("metrics.csv",Data(rows.utf8))
+                            var signals="time_s,"+motion.series.map{MotionArchive.csvCell($0.key)}.joined(separator:",")+"\n"
+                            for i in body.signals.indices {signals += String(body.signals[i].timeS)+","+motion.series.map{i<$0.values.count ? $0.values[i].map{String($0)} ?? "":""}.joined(separator:",")+"\n"}
+                            try write("signals.csv",Data(signals.utf8))
+                        }
+                        let landmarks=directory.appendingPathComponent(record.id.uuidString+"-landmarks.json")
+                        if FileManager.default.fileExists(atPath:landmarks.path){files["landmarks.json"]=landmarks}
+                    }
+                    if let eye=record.result {
+                        try write("eye_report.json",JSONEncoder().encode(eye))
+                        var raw="time_ms,yaw_deg,pitch_deg\n"
+                        for sample in eye.rawSamples ?? [] {raw += "\(sample.timeMs),\(sample.yawDeg.map{String($0)} ?? ""),\(sample.pitchDeg.map{String($0)} ?? "")\n"}
+                        try write("eye_signals.csv",Data(raw.utf8))
+                    }
+                    if let imu=record.imuSession {
+                        files["imu.csv"]=directory.appendingPathComponent(imu.fileName)
+                        files["markers.csv"]=directory.appendingPathComponent(imu.markersName)
+                        try write("imu_meta.json",JSONEncoder().encode(imu))
+                    }
+                    if let remote=record.cloudRecord {try write("cloud_record.json",remote.data())}
+                    let output=directory.appendingPathComponent(record.id.uuidString+"-"+UUID().uuidString.prefix(8)+"-report.zip")
+                    try MotionArchive.write(files:files,to:output)
+                    return output
+                }.value
+                reportArchive=output
+            }catch{self.error="导出失败：\(error.localizedDescription)"}
+            exporting=false
         }
     }
     private func metric(_ label: String, _ value: String) -> some View {

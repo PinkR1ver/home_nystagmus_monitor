@@ -1,4 +1,4 @@
-> Full feature port is now in progress (2026-09-22). Manual fixed ROI, raw IMU capture, MediaPipe Heavy body/STS/standing/gait metrics and HTTPS cloud sync are implemented. Android-reference algorithm fixtures and synthetic live-server sync tests pass. Live body camera overlay, complete export/parity checks and physical acceptance remain pending. See `.agents/spec/apple-motion-lab.md` for current state. Run CocoaPods install before opening the `.xcworkspace`.
+> Full feature port is now in progress (2026-09-22). Manual fixed ROI, raw IMU capture, MediaPipe Heavy body/STS/standing/gait metrics and HTTPS cloud sync are implemented. Android-reference algorithm fixtures and synthetic live-server sync tests pass. Live body camera overlay, quality-gated eye analysis, report ZIP/CSV export and account-scoped cloud sync are implemented. Physical camera/IMU acceptance still requires an available iOS signing account and Developer build. See `.agents/spec/apple-motion-lab.md` for current state. Run CocoaPods install before opening the `.xcworkspace`.
 
 # Apple Motion Lab · Android 同款设计版
 

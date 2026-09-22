@@ -38,6 +38,9 @@
 		2C1BAD2A4C91B81746863B07 /* BodyMotionMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C9B57E779803E9D76D4085C; };
 		71E2C244ECAF1D4D2A58ECE1 /* BodyGaitMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6A20A5891DB0DC2AB67740; };
 		20E0719A827905FC74648C99 /* BodyMotionReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BF34682C6EE0C26A639CE8C; };
+		B2EFEB297D5E48582A811884 /* LiveBodyFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627DAA47BDE0037F3E87269A; };
+		2514FD3962DA5E89E55434A9 /* EyeQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 978F4D94138524518BE1917F; };
+		4599E910F1157C61C1C533F2 /* MotionArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C4BE6B0D77650EBF92D75F; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -75,6 +78,9 @@
 		0C9B57E779803E9D76D4085C /* BodyMotionMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMotionMetrics.swift; sourceTree = "<group>"; };
 		6D6A20A5891DB0DC2AB67740 /* BodyGaitMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyGaitMetrics.swift; sourceTree = "<group>"; };
 		5BF34682C6EE0C26A639CE8C /* BodyMotionReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMotionReportView.swift; sourceTree = "<group>"; };
+		627DAA47BDE0037F3E87269A /* LiveBodyFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBodyFeedback.swift; sourceTree = "<group>"; };
+		978F4D94138524518BE1917F /* EyeQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeQuality.swift; sourceTree = "<group>"; };
+		59C4BE6B0D77650EBF92D75F /* MotionArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionArchive.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +139,7 @@
 		A10400000000000000000003 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				978F4D94138524518BE1917F /* EyeQuality.swift */,
 				A2B599B16C68F880571F28BA /* BodyPose.swift */,
 				0FE71DDA26E067669BD76047 /* IMUData.swift */,
 				6B25FADAB8CBD7BD5F9187D4 /* EyeRegion.swift */,
@@ -144,6 +151,8 @@
 		A10400000000000000000004 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				59C4BE6B0D77650EBF92D75F /* MotionArchive.swift */,
+				627DAA47BDE0037F3E87269A /* LiveBodyFeedback.swift */,
 				6D6A20A5891DB0DC2AB67740 /* BodyGaitMetrics.swift */,
 				0C9B57E779803E9D76D4085C /* BodyMotionMetrics.swift */,
 				1AA6EECDA5319AE61954970D /* CloudRuntimeSmoke.swift */,
@@ -300,6 +309,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4599E910F1157C61C1C533F2 /* MotionArchive.swift in Sources */,
+				2514FD3962DA5E89E55434A9 /* EyeQuality.swift in Sources */,
+				B2EFEB297D5E48582A811884 /* LiveBodyFeedback.swift in Sources */,
 				20E0719A827905FC74648C99 /* BodyMotionReportView.swift in Sources */,
 				71E2C244ECAF1D4D2A58ECE1 /* BodyGaitMetrics.swift in Sources */,
 				2C1BAD2A4C91B81746863B07 /* BodyMotionMetrics.swift in Sources */,

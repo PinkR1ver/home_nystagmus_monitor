@@ -64,7 +64,7 @@ final class ONNXRuntimeGazeEstimator: GazeEstimator {
         let floatCount = tensorData.length / MemoryLayout<Float>.size
         let base = tensorData.bytes.bindMemory(to: Float.self, capacity: floatCount)
         let values = Array(UnsafeBufferPointer(start: base, count: min(3, floatCount)))
-        guard values.count == 3 else {
+        guard values.count == 3, values.allSatisfy(\.isFinite) else {
             throw GazeEstimatorError.invalidOutput
         }
 
@@ -72,7 +72,8 @@ final class ONNXRuntimeGazeEstimator: GazeEstimator {
         let y = Double(values[1])
         let zValue = Double(values[2])
         let magnitudeSquared: Double = x * x + y * y + zValue * zValue
-        let norm: Double = Swift.max(Darwin.sqrt(magnitudeSquared), 1.0e-8)
+        let norm = Darwin.sqrt(magnitudeSquared)
+        guard norm.isFinite, norm > 1e-8 else {throw GazeEstimatorError.invalidOutput}
         return GazeVector3D(x: x / norm, y: y / norm, z: zValue / norm)
     }
 
@@ -115,17 +116,13 @@ final class ONNXRuntimeGazeEstimator: GazeEstimator {
         context.interpolationQuality = .medium
         context.draw(image, in: CGRect(x: 0, y: 0, width: inputWidth, height: inputHeight))
 
-        var tensor = [Float](repeating: 0, count: channelCount * inputHeight * inputWidth)
-        let planeSize = inputHeight * inputWidth
-        for y in 0..<inputHeight {
-            for x in 0..<inputWidth {
-                let pixelOffset = (y * inputWidth + x) * bytesPerPixel
-                let tensorOffset = y * inputWidth + x
-                tensor[tensorOffset] = Float(pixels[pixelOffset]) / 255.0
-                tensor[planeSize + tensorOffset] = Float(pixels[pixelOffset + 1]) / 255.0
-                tensor[planeSize * 2 + tensorOffset] = Float(pixels[pixelOffset + 2]) / 255.0
-            }
+        let gray=(0..<(inputWidth*inputHeight)).map {index in
+            0.299*Double(pixels[index*4])+0.587*Double(pixels[index*4+1])+0.114*Double(pixels[index*4+2])
         }
+        guard EyeQuality.usable(gray:gray,width:image.width,height:image.height) else {throw GazeEstimatorError.invalidImage}
+        let enhanced=EyeQuality.enhanced(gray.map{Int($0)})
+        let plane=enhanced.map{Float($0)/255}
+        let tensor=plane+plane+plane
         return tensor
     }
 

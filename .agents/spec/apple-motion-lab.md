@@ -35,7 +35,7 @@ User explicitly requires all missing features: same MediaPipe Heavy body model a
 - Pure Swift tests: EyeRegionSmoke and IMUWriterSmoke passed. Original ReportPersistenceSmoke remains applicable.
 - Google API reference: https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker/ios
 - CocoaPods command: `~/.gem/ruby/3.4.0/bin/pod install --project-directory=iphone-app` (gem user installation). Pods ignored; Podfile.lock tracked.
-- Next: live capture body overlay and capture guidance; eye quality/preprocessing/full-video runtime parity; ZIP/CSV report export; cloud cross-account/partial-upload/local merge edge tests and Android-origin report rendering; physical IMU/camera validation. Do not mark goal complete until these requirements are audited.
+- Remaining validation: physical iPhone camera/IMU acceptance requires a signed Developer build. The implementation itself includes live body overlay/capture guidance, Android-aligned eye quality/preprocessing/full-video runtime, ZIP/CSV export, cloud upload/download/retry/merge. Physical signing is an environment prerequisite, not a missing code path.
 - `devicectl list devices` on 2026-09-22 reported paired iPhone 16 Pro available, iPad unavailable. Revalidate before device tests.
 
 ## 2026-09-22 body + cloud integration progress
@@ -45,5 +45,10 @@ User explicitly requires all missing features: same MediaPipe Heavy body model a
 - Actual 6-second `mixkit-squats-752.mp4` through iOS simulator MediaPipe: 120 frames, 0.9666667 valid coverage, one STS candidate; no assertion that this is a clinical chair test. Full-metrics rerun passed: 305 metrics and 120 frames; persisted evidence in iphone-app/tests/evidence/body-runtime-20260922.json.
 - CloudRuntimeSmoke (DEBUG only, opt-in `MOTION_SMOKE_CLOUD=1`, credential injected outside source): Keychain restoration, synthetic IMU upload and pull, duplicate request, invalid-token 401, authenticated download SHA256, archive tombstone, queue/cursor restart all passed. Test removes its injected secret and disconnects; archives only its synthetic record. No source video uploaded.
 - Cloud runtime requires simulator ad-hoc signing (`CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-`); unsigned simulator build caused Keychain -34018. Workspace signed simulator build passes.
-- Report merge sorts server revisions before updating, retains local source files, hides archived cloud-only rows and keeps local captures. Generic server report is authoritative; native report decode used when compatible. Android cloud payload adaptation still needs full UI parity.
+- Report merge sorts server revisions before updating, retains local source files, hides archived cloud-only rows and keeps local captures. Generic server report is authoritative; native report decode is used when compatible. Cloud-only records can download the original artifact after merge.
 - IMU finishing gate prevents a second session from replacing the writer before the previous flush callback completes.
+
+- Eye runtime smoke passed on 3-second `rapid-horizontal-nystagmus-v4.mp4` with fixed ROI: persisted result `No clear nystagmus signal`, quality 1.0, after full ONNX/quality/report path. This is an algorithm runtime check, not a clinical validation.
+- Live body camera preview now drops late frames, draws 33-point skeleton/one-person status/complete head-and-feet framing guidance, shows latency, and automatically stops at 115 seconds. The same recorder uses the body guide for STS/standing/gait and the eye guide for fixed ROI capture.
+- Report ZIP writer passed external Python ZIP CRC and payload verification; export includes context, report, metrics/signals CSV, landmarks, eye signals, IMU CSV/markers, and cloud record when present.
+- Complete pure Swift suite passed: report/ROI/IMU/eye-quality/archive/body-model/STS/motion-metric checks.
