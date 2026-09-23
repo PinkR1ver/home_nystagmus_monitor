@@ -65,6 +65,26 @@ class IngestionTests(unittest.TestCase):
         self.assertIsNotNone(a.get(url).json()['artifacts'][0]['deleted_at'])
         self.assertEqual(a.put(url+'/client-report',json=report).status_code,409)
         self.assertEqual(a.post(url+'/archive').status_code,200)
+    def test_befast_features_without_raw_media(self):
+        a,b=self.clients; url='/v1/records/synthetic-befast'
+        meta={'taskType':'befast','startedAt':'2026-09-23T00:00:00Z','durationSec':0,'context':{'synthetic':True,'sourceSessionId':'synthetic-befast'}}
+        self.assertEqual(a.put(url,json=meta).status_code,200)
+        self.assertEqual(a.post(url+'/complete',json={'artifacts':{}}).status_code,409)
+        raw=b'forbidden raw media'
+        self.assertEqual(a.put(url+'/artifacts/video.mp4',content=raw,headers={'X-Content-SHA256':hashlib.sha256(raw).hexdigest()}).status_code,422)
+        report={'version':'befast-features-v1','outcome':'analyzed','payload':{'schemaVersion':1,'modules':[],'headache':{'answer':'UNABLE_TO_ANSWER','nrs':None}}}
+        self.assertEqual(a.put(url+'/client-report',json=report).status_code,200)
+        commit={'artifacts':{},'reportVersion':'befast-features-v1'}
+        done=a.post(url+'/complete',json=commit)
+        self.assertEqual(done.status_code,200)
+        self.assertEqual(a.post(url+'/complete',json=commit).json()['revision'],done.json()['revision'])
+        detail=a.get(url).json()
+        self.assertEqual(detail['artifacts'],[])
+        self.assertIsNone(detail['reports'][0]['payload']['headache']['nrs'])
+        self.assertEqual(b.get(url).status_code,404)
+        self.assertEqual(a.post(url+'/archive').status_code,200)
+        self.assertEqual(a.get(url).json()['status'],'archived')
+
     def test_raw_only_imu_and_validation(self):
         a=self.clients[0]; url='/v1/records/synthetic-imu'
         meta={'taskType':'imu','startedAt':'2026-09-21T00:00:00Z','durationSec':2}

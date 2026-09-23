@@ -71,3 +71,11 @@ Android v0.5.0 now has optional authenticated HTTPS foreground sync, encrypted c
 `test_integration.py` runs against localhost using temporary synthetic accounts and removes its own data afterwards. Verifies unauthorized rejection, account isolation, immutable IDs, mismatched SHA-256, duplicate retry, download integrity, report provenance/conflict, completion manifest, incremental cursor, archive tombstones/video cleanup, raw-only IMU and validation. Never uses patient data.
 
 Deployment acceptance results are recorded in `.agents/spec/motion-cloud-ingestion.md`.
+
+## BEFAST v2 protocol extension (2026-09-23, deployment pending)
+
+`taskType: "befast"` accepts account-scoped immutable feature/self-report snapshots. No raw artifacts are accepted for this type. `complete` requires an existing client-report version and an empty artifact manifest. Other task types retain their existing raw-file requirements. Schema v2 adds the task type using a transactional constraint replacement; it does not modify existing rows.
+
+Android uses `befast-<sourceSessionId>-<content hash prefix>` version IDs, freezes report payloads, omits local artifact names and binds the source session to the first account. Subsequent edits create another immutable snapshot. The report carries per-module missing/unavailable states; top-level `analyzed` indicates report processing, never a clinical diagnosis or that all modules are complete. No raw video/audio is part of these BEFAST uploads. Associated ordinary eye/body records retain their original upload policy.
+
+Before claiming deployed support, apply schema.sql, replace app.py, restart the service and run the full synthetic test_integration.py suite. New test verifies report requirement, raw-media rejection, duplicate completion, account isolation, null NRS preservation and archive. Local Python syntax check passed; live acceptance pending.

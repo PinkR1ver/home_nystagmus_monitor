@@ -22,3 +22,7 @@ PR #1 merged to main (5a157cdb58cc9b8064cba423a557f6fa9f0b99c2), GitGuardian pas
 ## Android continuation
 
 The goal remains active until module integration/verification is delivered. Android source is in the separate Downloads checkout, not this repository. Preserve its pre-existing untracked Studio `gradle/gradle-daemon-jvm.properties`. The local file Maven cache workaround and remaining scope are documented in that checkout’s `.agents/spec/befast-expansion.md`.
+
+## Sync continuation
+
+Android speech is delivered in 6c4f71f (74 tests, native synthetic Mandarin + silence, docs/BEFAST_SPEECH.md). BEFAST versioned, feature-only upload staging is implemented; source-account binding and raw-artifact omission tests pass. Backend app/schema/test changes for befast are prepared but not deployed yet. SSH BatchMode public-key authentication failed; password authentication authorized earlier is the next deployment route. Do not claim HTTPS BEFAST success before deployment and live tests. No raw capture or participant data was uploaded in this step.

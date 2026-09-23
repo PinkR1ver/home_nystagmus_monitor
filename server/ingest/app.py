@@ -54,7 +54,7 @@ def touch(c, account, rid):
 class RecordInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
     schemaVersion: Literal[1] = 1
-    taskType: Literal['eye','standing','gait','sts','imu']
+    taskType: Literal['eye','standing','gait','sts','imu','befast']
     startedAt: str = Field(min_length=10,max_length=64)
     durationSec: float = Field(ge=0,le=86400,allow_inf_nan=False)
     device: dict = Field(default_factory=dict)
@@ -149,6 +149,7 @@ async def upload(rid: str, name: str, request: Request, x_content_sha256: str=He
         raise HTTPException(422,'Unsupported artifact name or SHA-256')
     with db() as c:
         r=record(c,account,rid,True)
+        if r['task_type']=='befast': raise HTTPException(422,'BEFAST accepts feature reports only; raw artifacts are not allowed')
         if r['status']=='complete':
             existing=c.execute('SELECT sha256 FROM artifacts WHERE account_id=%s AND record_id=%s AND name=%s',(account,rid,name)).fetchone()
             if existing and existing['sha256']==x_content_sha256: return {'sha256':x_content_sha256,'duplicate':True}
@@ -210,7 +211,10 @@ def complete(rid: str,body: CommitInput,account=Depends(auth)):
         actual={a['name']:a['sha256'] for a in rows}
         if body.artifacts!=actual: raise HTTPException(409,'Artifact manifest does not match uploaded files')
         required={'imu.csv','imu.zip'} if r['task_type']=='imu' else {'video.mp4'}
-        if not required.intersection(actual): raise HTTPException(409,'Required raw capture missing')
+        if r['task_type']=='befast':
+            if actual: raise HTTPException(409,'BEFAST must not contain raw artifacts')
+            if not body.reportVersion: raise HTTPException(409,'BEFAST feature report required')
+        elif not required.intersection(actual): raise HTTPException(409,'Required raw capture missing')
         if body.reportVersion and not c.execute("SELECT 1 FROM reports WHERE account_id=%s AND record_id=%s AND origin='client' AND version=%s",(account,rid,body.reportVersion)).fetchone():
             raise HTTPException(409,'Report missing')
         if r['status']!='complete':

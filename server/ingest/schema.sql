@@ -34,3 +34,11 @@ CREATE TABLE IF NOT EXISTS reports (
 );
 CREATE TABLE IF NOT EXISTS schema_migrations (version integer PRIMARY KEY, applied_at timestamptz DEFAULT now());
 INSERT INTO schema_migrations(version) VALUES(1) ON CONFLICT DO NOTHING;
+
+-- Additive v2: BEFAST stores client feature/self-report snapshots, no required raw media.
+BEGIN;
+ALTER TABLE records DROP CONSTRAINT IF EXISTS records_task_type_check;
+ALTER TABLE records ADD CONSTRAINT records_task_type_check
+ CHECK(task_type IN ('eye','standing','gait','sts','imu','befast'));
+INSERT INTO schema_migrations(version) VALUES(2) ON CONFLICT DO NOTHING;
+COMMIT;
