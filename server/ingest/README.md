@@ -72,10 +72,12 @@ Android v0.5.0 now has optional authenticated HTTPS foreground sync, encrypted c
 
 Deployment acceptance results are recorded in `.agents/spec/motion-cloud-ingestion.md`.
 
-## BEFAST v2 protocol extension (2026-09-23, deployment pending)
+## BEFAST v2 protocol extension (2026-09-23, deployed and verified)
 
 `taskType: "befast"` accepts account-scoped immutable feature/self-report snapshots. No raw artifacts are accepted for this type. `complete` requires an existing client-report version and an empty artifact manifest. Other task types retain their existing raw-file requirements. Schema v2 adds the task type using a transactional constraint replacement; it does not modify existing rows.
 
 Android uses `befast-<sourceSessionId>-<content hash prefix>` version IDs, freezes report payloads, omits local artifact names and binds the source session to the first account. Subsequent edits create another immutable snapshot. The report carries per-module missing/unavailable states; top-level `analyzed` indicates report processing, never a clinical diagnosis or that all modules are complete. No raw video/audio is part of these BEFAST uploads. Associated ordinary eye/body records retain their original upload policy.
 
-Before claiming deployed support, apply schema.sql, replace app.py, restart the service and run the full synthetic test_integration.py suite. New test verifies report requirement, raw-media rejection, duplicate completion, account isolation, null NRS preservation and archive. Local Python syntax check passed; live acceptance pending.
+Before claiming deployed support, apply schema.sql, replace app.py, restart the service and run the full synthetic test_integration.py suite. New test verifies report requirement, raw-media rejection, duplicate completion, account isolation, null NRS preservation and archive. Python syntax, all three live server contract tests and Android emulator verified-HTTPS feature upload/retry/cache/tombstone test passed. Test data were synthetic and no media was uploaded.
+
+Deployment backup: `/root/motion-lab/befast-backup-20260923/` (root-only directory, previous code and PostgreSQL dump). Database migration versions 1 and 2 verified. API `schemaVersion:1` denotes the wire schema; database migration 2 adds BEFAST without changing the wire version.

@@ -69,7 +69,7 @@ class ReportInput(BaseModel):
 
 class CommitInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    artifacts: dict[str,str] = Field(min_length=1,max_length=10)
+    artifacts: dict[str,str] = Field(max_length=10)
     reportVersion: str | None = Field(default=None,max_length=100)
 
 @app.middleware('http')

@@ -26,3 +26,7 @@ The goal remains active until module integration/verification is delivered. Andr
 ## Sync continuation
 
 Android speech is delivered in 6c4f71f (74 tests, native synthetic Mandarin + silence, docs/BEFAST_SPEECH.md). BEFAST versioned, feature-only upload staging is implemented; source-account binding and raw-artifact omission tests pass. Backend app/schema/test changes for befast are prepared but not deployed yet. SSH BatchMode public-key authentication failed; password authentication authorized earlier is the next deployment route. Do not claim HTTPS BEFAST success before deployment and live tests. No raw capture or participant data was uploaded in this step.
+
+## Deployed sync acceptance
+
+2026-09-23: backend extension deployed with root-only backup; full three-method integration suite passed after removing the old nonempty-artifact validation for report-only tasks. Android ARM64 verified-HTTPS test passed pure feature upload, repeated-sync stable revision, cache restoration, tombstone and local preservation. Credential removed from emulator test input. Prior deployment-pending notes above are historical. Remaining validation includes positive natural Face/Arms fixtures, final regression and physical-capture scope; cloud history currently uses generic account-scoped viewer.

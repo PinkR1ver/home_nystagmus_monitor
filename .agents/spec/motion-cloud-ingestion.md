@@ -22,3 +22,7 @@
 - No cloud inference was deployed; `complete` is upload state. Existing local eye/body reports remain client-origin.
 - Added authenticated `/v1/me` for Android identity verification; deployed and exercised from real Android emulator.
 - Authoritative schema, protocol and operations: `server/ingest/README.md`, `schema.sql`.
+
+## BEFAST extension (2026-09-23)
+
+Deployed feature-only `befast` task and schema migration 2. Complete requires report and no artifacts; raw artifact upload is rejected for this type, existing eye/body/IMU contracts retained. All three deployed integration methods passed. Android native verified-HTTPS synthetic self-report test passed upload, idempotent retry/revision stability, cache restoration, tombstone handling and local preservation. API `schemaVersion:1` remains unchanged. Code/database backup in `/root/motion-lab/befast-backup-20260923`. No patient/media data uploaded.
