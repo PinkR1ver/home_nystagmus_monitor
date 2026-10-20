@@ -12,7 +12,7 @@ This folder contains a standalone static landing page for `Home Nystagmus Monito
 
 ## Before publishing
 
-- APK is currently distributed from `docs/downloads/home-nystagmus-monitor-debug.apk`.
+- Current Motion Lab Android APK is distributed through GitHub Releases; the download page is `docs/android/index.html`. The old downloads APK is historical and is not linked as the current build.
 - The landing page button in `index.html` already points to that local file.
 - Add contact info, privacy notice, and version number if this will be shared with patients.
 - If you want to host the APK on GitHub, pair this page with a GitHub Release download link.
@@ -27,3 +27,10 @@ This folder contains a standalone static landing page for `Home Nystagmus Monito
 - Model path requirements
 - Uvicorn start command
 - Android server URL setup (emulator + device)
+
+## Android distribution
+
+- Public page: https://pinkr1ver.github.io/home_nystagmus_monitor/android/
+- Release: `android-v1.2.0`; asset `motion-lab-1.2.0-android-arm64.apk`, plus `SHA256SUMS.txt`.
+- Current artifact: 1.2.0 (12), Android 9+, ARM64, debug-signed preview. Source is the separate Motion Lab Android checkout, commit 3500ef9; this release tag tracks distribution metadata, not that Android source tree.
+- Future updates: verify APK manifest and signature, upload a new versioned release and checksums, then update `android/release.json` and `android/index.html` together. Preserve signing identity for updates. Never upload keystores, account tokens or recordings.
